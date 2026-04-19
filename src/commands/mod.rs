@@ -24,6 +24,14 @@ pub enum Command {
     Report(ReportCmd),
     Sync(SyncCmd),
     Resume(ResumeCmd),
+    /// 扫描 phrases 目录，生成 phrases 数组
+    GenPhrase,
+    /// 设置当前 phase 状态为 issue_found
+    SetIssue,
+    /// 完成修复
+    FinishFix,
+    /// 完成阶段
+    FinishPhrase,
 }
 
 #[derive(Parser, Debug)]
@@ -82,6 +90,10 @@ fn dispatch(cmd: Command) {
         Command::Report(c) => report::run(c),
         Command::Sync(c) => sync::run(c),
         Command::Resume(c) => resume::run(c),
+        Command::GenPhrase => { let _ = internal::gen_phrase(); },
+        Command::SetIssue => { let _ = internal::set_issue(); },
+        Command::FinishFix => { let _ = internal::finish_fix(); },
+        Command::FinishPhrase => { let _ = internal::finish_phrase(); },
     }
 }
 
@@ -95,3 +107,4 @@ pub mod archive;
 pub mod report;
 pub mod sync;
 pub mod resume;
+pub mod internal;

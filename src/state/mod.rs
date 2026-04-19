@@ -1,3 +1,3 @@
 pub mod roadmap;
 
-pub use roadmap::{RoadmapState, RoadmapStore};
+pub use roadmap::{RoadmapState, RoadmapStore, Phrase};
