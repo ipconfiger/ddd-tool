@@ -47,7 +47,7 @@ pub fn run(cmd: crate::commands::SetupCmd) {
     }
 }
 
-fn setup_claude(_ddd_binary: &Path, project_root: &Path) -> Result<()> {
+fn setup_claude(ddd_binary: &Path, project_root: &Path) -> Result<()> {
     let claude_dir = project_root.join(".claude");
     let commands_dir = claude_dir.join("commands");
     let skills_dir = claude_dir.join("skills").join("ddd");
@@ -66,11 +66,14 @@ fn setup_claude(_ddd_binary: &Path, project_root: &Path) -> Result<()> {
         let content = format!(
             r#"---
 description: "DocDriven CLI - {}"
+allowed-tools: ["Bash"]
 ---
 
-Invoke the ddd skill with "{} $ARGUMENTS"
+Execute: !`{} {} $ARGUMENTS`
 "#,
-            desc, name
+            desc,
+            ddd_binary.to_string_lossy(),
+            name
         );
         fs::write(&cmd_file, content)?;
     }

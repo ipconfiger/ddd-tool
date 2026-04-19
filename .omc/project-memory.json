@@ -80,15 +80,15 @@
   },
   "hotPaths": [
     {
-      "path": "src/commands/mod.rs",
-      "accessCount": 15,
-      "lastAccessed": 1776612130562,
+      "path": "src/commands/setup.rs",
+      "accessCount": 18,
+      "lastAccessed": 1776612562948,
       "type": "file"
     },
     {
-      "path": "src/commands/setup.rs",
-      "accessCount": 13,
-      "lastAccessed": 1776612136448,
+      "path": "src/commands/mod.rs",
+      "accessCount": 15,
+      "lastAccessed": 1776612130562,
       "type": "file"
     },
     {
