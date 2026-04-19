@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Execute development phase"
+---
+
+!`/Users/alex/.cargo/bin/ddd exec $ARGUMENTS`

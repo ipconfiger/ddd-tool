@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Resume interrupted workflow"
+---
+
+!`/Users/alex/.cargo/bin/ddd resume $ARGUMENTS`

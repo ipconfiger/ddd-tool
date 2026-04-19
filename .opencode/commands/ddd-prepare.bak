@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Prepare phrases from specs"
+---
+
+!`/Users/alex/.cargo/bin/ddd prepare $ARGUMENTS`

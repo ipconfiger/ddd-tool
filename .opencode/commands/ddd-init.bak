@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Initialize project with context (requires --context)"
+---
+
+!`/Users/alex/.cargo/bin/ddd init --context $ARGUMENTS`

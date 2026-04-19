@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Execute fix plan"
+---
+
+!`/Users/alex/.cargo/bin/ddd fix-exec $ARGUMENTS`

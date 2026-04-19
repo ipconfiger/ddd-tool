@@ -1,0 +1,5 @@
+---
+description: "DocDriven CLI - Archive completed project"
+---
+
+!`/Users/alex/.cargo/bin/ddd archive $ARGUMENTS`

@@ -81,14 +81,14 @@
   "hotPaths": [
     {
       "path": "src/commands/setup.rs",
-      "accessCount": 18,
-      "lastAccessed": 1776612562948,
+      "accessCount": 19,
+      "lastAccessed": 1776613052087,
       "type": "file"
     },
     {
       "path": "src/commands/mod.rs",
-      "accessCount": 15,
-      "lastAccessed": 1776612130562,
+      "accessCount": 16,
+      "lastAccessed": 1776613040125,
       "type": "file"
     },
     {
@@ -150,6 +150,24 @@
       "accessCount": 1,
       "lastAccessed": 1776611612011,
       "type": "directory"
+    },
+    {
+      "path": "src/commands/init.rs",
+      "accessCount": 1,
+      "lastAccessed": 1776612952609,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/context.rs",
+      "accessCount": 1,
+      "lastAccessed": 1776612959430,
+      "type": "file"
+    },
+    {
+      "path": "src/prompts/mod.rs",
+      "accessCount": 1,
+      "lastAccessed": 1776612979885,
+      "type": "file"
     }
   ],
   "userDirectives": []
