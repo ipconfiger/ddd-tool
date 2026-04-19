@@ -2,4 +2,4 @@
 description: "DocDriven CLI - Generate fix plan"
 ---
 
-!`/Users/alex/Projects/workspace/ddd_proj/target/debug/ddd fix-plan $ARGUMENTS`
+使用 Bash 工具执行: /Users/alex/Projects/workspace/ddd_proj/target/debug/ddd fix-plan $ARGUMENTS

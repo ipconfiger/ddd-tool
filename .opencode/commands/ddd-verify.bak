@@ -1,5 +1,0 @@
----
-description: "DocDriven CLI - Verify phase成果"
----
-
-!`/Users/alex/.cargo/bin/ddd verify $ARGUMENTS`

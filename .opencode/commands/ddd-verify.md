@@ -2,4 +2,4 @@
 description: "DocDriven CLI - Verify phase成果"
 ---
 
-!`/Users/alex/Projects/workspace/ddd_proj/target/debug/ddd verify $ARGUMENTS`
+使用 Bash 工具执行: /Users/alex/Projects/workspace/ddd_proj/target/debug/ddd verify $ARGUMENTS

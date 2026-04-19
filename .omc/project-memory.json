@@ -81,8 +81,8 @@
   "hotPaths": [
     {
       "path": "src/commands/setup.rs",
-      "accessCount": 19,
-      "lastAccessed": 1776613052087,
+      "accessCount": 21,
+      "lastAccessed": 1776613701922,
       "type": "file"
     },
     {
@@ -113,6 +113,12 @@
       "path": ".claude/settings.local.json",
       "accessCount": 2,
       "lastAccessed": 1776610417324,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/init.rs",
+      "accessCount": 2,
+      "lastAccessed": 1776613644082,
       "type": "file"
     },
     {
@@ -152,12 +158,6 @@
       "type": "directory"
     },
     {
-      "path": "src/commands/init.rs",
-      "accessCount": 1,
-      "lastAccessed": 1776612952609,
-      "type": "file"
-    },
-    {
       "path": "src/commands/context.rs",
       "accessCount": 1,
       "lastAccessed": 1776612959430,
@@ -167,6 +167,12 @@
       "path": "src/prompts/mod.rs",
       "accessCount": 1,
       "lastAccessed": 1776612979885,
+      "type": "file"
+    },
+    {
+      "path": ".opencode/commands/ddd-init.md",
+      "accessCount": 1,
+      "lastAccessed": 1776613598949,
       "type": "file"
     }
   ],

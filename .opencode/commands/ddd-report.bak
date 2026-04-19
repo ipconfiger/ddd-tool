@@ -1,5 +1,0 @@
----
-description: "DocDriven CLI - Generate project report"
----
-
-!`/Users/alex/.cargo/bin/ddd report $ARGUMENTS`

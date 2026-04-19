@@ -1,5 +1,0 @@
----
-description: "DocDriven CLI - Generate fix plan"
----
-
-!`/Users/alex/.cargo/bin/ddd fix-plan $ARGUMENTS`

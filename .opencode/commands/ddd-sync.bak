@@ -1,5 +1,0 @@
----
-description: "DocDriven CLI - Sync code to docs"
----
-
-!`/Users/alex/.cargo/bin/ddd sync $ARGUMENTS`

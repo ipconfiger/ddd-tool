@@ -130,7 +130,7 @@ fn setup_opencode(ddd_binary: &Path, project_root: &Path) -> Result<()> {
 description: "DocDriven CLI - {}"
 ---
 
-!`{} {} $ARGUMENTS`
+使用 Bash 工具执行: {} {} $ARGUMENTS
 "#,
             desc,
             ddd_binary.to_string_lossy(),
