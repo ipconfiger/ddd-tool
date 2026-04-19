@@ -81,8 +81,14 @@
   "hotPaths": [
     {
       "path": "src/commands/mod.rs",
-      "accessCount": 7,
-      "lastAccessed": 1776609784644,
+      "accessCount": 12,
+      "lastAccessed": 1776610584932,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/setup.rs",
+      "accessCount": 6,
+      "lastAccessed": 1776610644937,
       "type": "file"
     },
     {
@@ -90,6 +96,54 @@
       "accessCount": 5,
       "lastAccessed": 1776609762280,
       "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 2,
+      "lastAccessed": 1776609874578,
+      "type": "directory"
+    },
+    {
+      "path": "",
+      "accessCount": 2,
+      "lastAccessed": 1776610200859,
+      "type": "directory"
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "accessCount": 2,
+      "lastAccessed": 1776610417324,
+      "type": "file"
+    },
+    {
+      "path": "project_docs",
+      "accessCount": 1,
+      "lastAccessed": 1776609883466,
+      "type": "directory"
+    },
+    {
+      "path": "docs",
+      "accessCount": 1,
+      "lastAccessed": 1776609885303,
+      "type": "directory"
+    },
+    {
+      "path": "docs/new_spec_v2.md",
+      "accessCount": 1,
+      "lastAccessed": 1776609887668,
+      "type": "file"
+    },
+    {
+      "path": "project_docs/specs/spec_commands.md",
+      "accessCount": 1,
+      "lastAccessed": 1776609888263,
+      "type": "file"
+    },
+    {
+      "path": ".claude",
+      "accessCount": 1,
+      "lastAccessed": 1776610412389,
+      "type": "directory"
     }
   ],
   "userDirectives": []

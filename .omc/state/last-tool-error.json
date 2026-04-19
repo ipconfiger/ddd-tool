@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk cargo build 2>&1\",\"description\":\"Build to verify changes\"}",
-  "error": "Exit code 101\ncargo build: 5 errors, 0 warnings (1 crates)\n═══════════════════════════════════════\nerror[E0532]: expected tuple struct or tuple variant, found unit variant `Command::GenPhrase`\n   --> src/commands/mod.rs:109:9\n    |\n 28 |     GenPhrase,\n    |     --------- `Command::GenPhrase` defined here\n...\n109 |         Command::GenPhrase(_c) => internal::gen_phrase(),\n    |         ^^^^^^^^^^^^^^^^^^^^^^ help: use this syntax instead: `Command::GenPhrase`\n\nerror[E0532]: expected tuple struct...",
-  "timestamp": "2026-04-19T14:42:45.092Z",
+  "tool_input_preview": "{\"command\":\"rtk cargo build 2>&1\",\"description\":\"Build to verify setup command\"}",
+  "error": "Exit code 101\ncargo build: 1 errors, 1 warnings (1 crates)\n═══════════════════════════════════════\nerror: argument never used\n   --> src/commands/setup.rs:148:9\n    |\n126 | /         r#\"---\n127 | | name: ddd\n128 | | description: DocDriven CLI - 文档驱动开发框架\n129 | | ---\n...   |\n142 | | \"#,\n    | |__- formatting specifier missing\n...\n148 |           bin_dir.to_string_lossy()\n    |           ^^^^^^^^^^^^^^^^^^^^^^^^^ argument never used\n\nwarning: unused variable: `ddd_binary`\n  --> src/commands/setup.r...",
+  "timestamp": "2026-04-19T14:56:50.854Z",
   "retry_count": 1
 }

@@ -32,6 +32,8 @@ pub enum Command {
     FinishFix,
     /// 完成阶段
     FinishPhrase,
+    /// setup: 在项目级别配置命令和技能
+    Setup(SetupCmd),
 }
 
 #[derive(Parser, Debug)]
@@ -67,6 +69,19 @@ pub struct SyncCmd;
 #[derive(Parser, Debug)]
 pub struct ResumeCmd;
 
+/// setup: 在项目级别配置 Claude 或 OpenCode 的命令和技能
+#[derive(Parser, Debug)]
+pub struct SetupCmd {
+    #[arg(long, value_enum, help = "目标工具: claude 或 opencode")]
+    pub tool: Tool,
+}
+
+#[derive(clap::ValueEnum, Debug, Clone)]
+pub enum Tool {
+    Claude,
+    Opencode,
+}
+
 pub fn run() {
     let cli = Cli::parse();
 
@@ -94,6 +109,7 @@ fn dispatch(cmd: Command) {
         Command::SetIssue => { let _ = internal::set_issue(); },
         Command::FinishFix => { let _ = internal::finish_fix(); },
         Command::FinishPhrase => { let _ = internal::finish_phrase(); },
+        Command::Setup(c) => setup::run(c),
     }
 }
 
@@ -108,3 +124,4 @@ pub mod report;
 pub mod sync;
 pub mod resume;
 pub mod internal;
+pub mod setup;
