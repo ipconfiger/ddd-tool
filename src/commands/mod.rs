@@ -38,7 +38,7 @@ pub enum Command {
 
 #[derive(Parser, Debug)]
 pub struct InitCmd {
-    #[arg(long, help = "需求上下文文档路径")]
+    #[arg(help = "需求上下文文档路径")]
     pub context: Option<String>,
 }
 
