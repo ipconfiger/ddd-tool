@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"rtk git status\",\"description\":\"Check git status\"}",
+  "error": "Exit code 128\nNot a git repository",
+  "timestamp": "2026-04-19T14:33:12.329Z",
+  "retry_count": 1
+}
