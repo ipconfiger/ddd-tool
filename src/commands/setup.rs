@@ -122,16 +122,24 @@ fn setup_opencode(ddd_binary: &Path, project_root: &Path) -> Result<()> {
     // Generate command files (10 files)
     for (name, desc) in PUBLIC_COMMANDS {
         let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
+        // init 命令需要 --context 参数
+        let (arg_format, desc_suffix) = if *name == "init" {
+            ("--context $ARGUMENTS", " (requires --context)")
+        } else {
+            ("$ARGUMENTS", "")
+        };
         let content = format!(
             r#"---
-description: "DocDriven CLI - {}"
+description: "DocDriven CLI - {}{}"
 ---
 
-!`{} {} $ARGUMENTS`
+!`{} {} {}`
 "#,
             desc,
+            desc_suffix,
             ddd_binary.to_string_lossy(),
-            name
+            name,
+            arg_format
         );
         fs::write(&cmd_file, content)?;
     }
