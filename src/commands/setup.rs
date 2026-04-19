@@ -111,84 +111,34 @@ Use `/ddd-<command>` to invoke any command.
 }
 
 fn setup_opencode(ddd_binary: &Path, project_root: &Path) -> Result<()> {
-    let skills_dir = project_root.join(".opencode/skills/ddd");
-    let bin_dir = skills_dir.join("bin");
+    let commands_dir = project_root.join(".opencode/commands");
 
     // Create directories
-    fs::create_dir_all(&bin_dir)?;
+    fs::create_dir_all(&commands_dir)?;
 
-    // Backup existing
-    backup_file(skills_dir.join("SKILL.md").as_path())?;
-    backup_file(bin_dir.join("ddd").as_path())?;
+    // Backup existing command files
+    backup_dir(&commands_dir, "ddd-", ".md")?;
 
-    // Generate SKILL.md
-    let bin_dir_str = bin_dir.to_string_lossy();
-    let skill_content = format!(
-        r#"---
-name: ddd
-description: DocDriven CLI - 文档驱动开发框架
+    // Generate command files (10 files)
+    for (name, desc) in PUBLIC_COMMANDS {
+        let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
+        let content = format!(
+            r#"---
+description: "DocDriven CLI - {}"
 ---
 
-# DocDriven CLI
-
-## Available Commands
-
-{}
-
-## Usage
-
-1. Add to PATH: export PATH="$PATH:{}"
-2. Use `!ddd <command>` to invoke commands.
-
+!`{} {} $ARGUMENTS`
 "#,
-        PUBLIC_COMMANDS
-            .iter()
-            .map(|(name, desc)| format!("- `ddd {}`: {}", name, desc))
-            .collect::<Vec<_>>()
-            .join("\n"),
-        bin_dir_str
-    );
-
-    fs::write(skills_dir.join("SKILL.md"), skill_content)?;
-
-    // Generate wrapper script
-    let wrapper = format!(
-        r#"#!/bin/bash
-# DocDriven CLI wrapper for OpenCode
-# Usage: !ddd <command>
-
-DDD_BIN="{}"
-COMMAND="$1"
-
-if [ -z "$COMMAND" ]; then
-    echo "Usage: ddd <command>"
-    echo "Available: {}"
-    exit 1
-fi
-
-"$DDD_BIN" "$COMMAND" "${{@:2}}"
-"#,
-        ddd_binary.to_string_lossy(),
-        PUBLIC_COMMANDS
-            .iter()
-            .map(|(n, _)| *n)
-            .collect::<Vec<_>>()
-            .join(", ")
-    );
-
-    fs::write(bin_dir.join("ddd"), wrapper)?;
-
-    // Make executable
-    std::process::Command::new("chmod")
-        .args(["+x", bin_dir.join("ddd").to_str().unwrap()])
-        .output()?;
+            desc,
+            ddd_binary.to_string_lossy(),
+            name
+        );
+        fs::write(&cmd_file, content)?;
+    }
 
     println!("OpenCode setup complete!");
-    println!("  Skill: .opencode/skills/ddd/SKILL.md");
-    println!("  Wrapper: .opencode/skills/ddd/bin/ddd");
-    println!();
-    println!("Add to PATH: export PATH=\"$PATH:{}\"", bin_dir.to_string_lossy());
-    println!("Then use: !ddd <command>");
+    println!("  Commands: .opencode/commands/ddd-*.md ({} files)", PUBLIC_COMMANDS.len());
+    println!("Restart OpenCode to use /ddd-<command> syntax");
 
     Ok(())
 }
