@@ -4,7 +4,7 @@ mod context;
 pub use context::DddContext;
 
 #[derive(Parser, Debug)]
-#[command(name = "ddd")]
+#[command(name = "ddd-tool")]
 #[command(version = "0.1.0")]
 #[command(about = "DocDriven CLI - 文档驱动开发框架")]
 pub struct Cli {

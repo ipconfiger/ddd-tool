@@ -1,7 +1,12 @@
 [package]
-name = "ddd"
+name = "ddd-tool"
 version = "0.1.0"
 edition = "2021"
+description = "DocDriven CLI - 文档驱动开发框架，通过状态机管理 AI Agent 的开发阶段"
+repository = "https://github.com/ipconfiger/ddd-tool"
+license = "MIT"
+keywords = ["ddd", "doc-driven", "cli", "agent", "roadmap"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
