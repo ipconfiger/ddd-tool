@@ -21,21 +21,36 @@ fn do_run() -> Result<()> {
         return Ok(());
     }
 
-    // 断点恢复：查找 status in ["dev", "issue_found", "fixing"]
-    let current_phase = if state.workflow == "dev" {
-        state.phrases.iter().find(|p| {
-            p.status == "dev" || p.status == "issue_found" || p.status == "fixing"
-        })
+    // 状态机推进逻辑：
+    // 1. 根据 current_phase 查找当前节点
+    // 2. 如果 current_phase 为空，取 phases[0]
+    // 3. 如果当前 phase.status == "finished"，取下一个 phase
+    // 4. 否则继续当前 phase
+
+    let current_phase = if let Some(name) = &state.current_phase {
+        state.phases.iter().find(|p| &p.name == name)
     } else {
-        // 查找第一个 status == "init" 的阶段
-        state.phrases.iter().find(|p| p.status == "init")
+        state.phases.first()
     };
 
-    let (file, name) = if let Some(phase) = current_phase {
-        (phase.file.clone(), phase.name.clone())
-    } else {
-        println!("所有阶段已完成，无需继续开发");
-        return Ok(());
+    let (file, name) = match current_phase {
+        Some(phase) if phase.status == "finished" => {
+            // 找下一个 phase
+            let idx = state.phases.iter().position(|p| p.name == phase.name);
+            let next = idx.and_then(|i| state.phases.get(i + 1));
+            match next {
+                Some(p) => (p.file.clone(), p.name.clone()),
+                None => {
+                    println!("所有阶段已完成，无需继续开发");
+                    return Ok(());
+                }
+            }
+        }
+        Some(phase) => (phase.file.clone(), phase.name.clone()),
+        None => {
+            println!("阶段列表为空");
+            return Ok(());
+        }
     };
 
     // 更新状态
@@ -44,7 +59,7 @@ fn do_run() -> Result<()> {
     new_state.current_phase = Some(name.clone());
 
     // 找到并更新 phase status
-    if let Some(phase) = new_state.phrases.iter_mut().find(|p| p.name == name) {
+    if let Some(phase) = new_state.phases.iter_mut().find(|p| p.name == name) {
         if phase.status == "init" {
             phase.status = "dev".to_string();
         }
