@@ -1,14 +1,25 @@
 use crate::commands::DddContext;
 use crate::state::Phrase;
 use anyhow::Result;
+use std::ffi::OsStr;
 use std::fs;
+
+/// 从文件名中提取第一个连续数字序列，用于自然排序
+fn extract_sort_key(filename: &OsStr) -> (Option<u32>, String) {
+    let s = filename.to_string_lossy();
+    let num = s
+        .split(|c: char| !c.is_ascii_digit())
+        .find(|s| !s.is_empty())
+        .and_then(|s| s.parse::<u32>().ok());
+    (num, s.into_owned())
+}
 
 /// gen-phrase: 扫描 phrases 目录，生成 phrases 数组
 pub fn gen_phrase() -> Result<()> {
     let ctx = DddContext::new()?;
 
     // 扫描 phrases 目录（排除 index.md）
-    let phrases_dir = ctx.project_root.join("project_docs").join("phrases");
+    let phrases_dir = ctx.project_root.join("project_docs").join("phases");
     let mut phrase_files: Vec<_> = fs::read_dir(&phrases_dir)?
         .filter_map(|e| e.ok())
         .filter(|e| {
@@ -17,7 +28,7 @@ pub fn gen_phrase() -> Result<()> {
         })
         .collect();
 
-    phrase_files.sort_by_key(|e| e.file_name());
+    phrase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
 
     // 生成 phrases 数组
     let phrases: Vec<_> = phrase_files
@@ -26,7 +37,7 @@ pub fn gen_phrase() -> Result<()> {
         .map(|(idx, entry)| {
             let name = format!("Phrase{}", idx);
             let file = format!(
-                "@project_docs/phrases/{}",
+                "@project_docs/phases/{}",
                 entry.file_name().to_string_lossy()
             );
             serde_json::json!({
@@ -89,9 +100,9 @@ pub fn finish_fix() -> Result<()> {
         if let Some(phase) = state.phrases.iter_mut().find(|p| &p.name == current) {
             // 找到 executing 或最后一个 fix
             if let Some(fix) = phase.fixes.iter_mut().find(|f| f.status == "executing") {
-                fix.status = "done".to_string();
+                fix.status = "finished".to_string();
             } else if let Some(fix) = phase.fixes.last_mut() {
-                fix.status = "done".to_string();
+                fix.status = "finished".to_string();
             }
 
             // 检查是否所有 fixes 都 done
