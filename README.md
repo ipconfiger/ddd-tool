@@ -49,39 +49,53 @@ cargo install --path .
 ddd setup --tool opencode
 ```
 
+或为 Claude Code 部署：
+
+```bash
+ddd setup --tool claude
+```
+
 这会将 DDD 的 slash 命令（`/ddd-init`、`/ddd-exec`、`/ddd-verify` 等）部署到项目中。
 
-**第二步：在 OpenCode 中初始化项目**
+**第二步：初始化项目**
 
 ```
 /ddd-init ./project_docs/需求文档.md
 ```
 
-这会在 `project_docs/` 下生成 `roadmap.json`，包含项目的阶段划分。
+DDD 会输出一个 Prompt，指导 AI Agent 将需求文档拆分为规格文档（specs），存储到 `project_docs/specs/` 目录下。
 
-**第三步：准备阶段文档**
+**第三步：生成开发计划**
 
 ```
 /ddd-prepare
 ```
 
-根据 roadmap.json 中的 phases，生成对应的 spec 文档框架。
+DDD 会输出一个 Prompt，指导 AI Agent 根据规格文档生成分阶段开发计划，存储到 `project_docs/phases/` 目录下。
 
-**第四步：启动开发**
+**第四步：批准开发计划**
+
+```
+/ddd-accept
+```
+
+扫描 `project_docs/phases/` 目录，生成 phrases 数组，更新 `roadmap.json`。
+
+**第五步：启动开发**
 
 ```
 /ddd-exec
 ```
 
-DDD 会读取当前 Phase 的 spec 文档，渲染开发指令，启动 AI Agent 开始工作。
+DDD 会读取当前 Phase 的开发计划文档，渲染开发指令，启动 AI Agent 开始工作。
 
-**第五步：审核成果**
+**第六步：审核成果**
 
 ```
 /ddd-verify
 ```
 
-进入审核模式，检查当前阶段是否符合 spec 要求。
+进入审核模式，检查当前阶段是否符合 spec 要求。如有问题进入修复流程。
 
 **典型开发循环**
 
@@ -92,51 +106,79 @@ DDD 会读取当前 Phase 的 spec 文档，渲染开发指令，启动 AI Agent
 ...
 ```
 
+**所有阶段完成后**
+
+```
+/ddd-archive
+```
+
+归档项目文档到 `project_docs/archives/` 目录，重置 roadmap.json。
+
 ## 核心命令一览
 
 | 命令 | 说明 |
 |------|------|
-| `/ddd-init <文档>` | 初始化项目，生成 roadmap.json |
-| `/ddd-prepare` | 准备阶段文档（spec） |
-| `/ddd-exec` | 执行当前阶段的开发 |
-| `/ddd-verify` | 审核当前阶段成果 |
-| `/ddd-fix-plan` | 制定修复计划 |
-| `/ddd-fix-exec` | 执行修复 |
-| `/ddd-report` | 生成阶段报告 |
-| `/ddd-archive` | 归档已完成的项目 |
+| `ddd init <文档>` | 初始化项目，生成规格文档（specs） |
+| `ddd prepare` | 生成分阶段开发计划（phases） |
+| `ddd accept` | 扫描 phases 目录，生成 phrases 数组，更新 roadmap.json |
+| `ddd exec` | 执行当前阶段的开发 |
+| `ddd verify` | 验证当前阶段是否符合 spec 要求 |
+| `ddd audit` | 审核所有规格文档和开发计划 |
+| `ddd sync` | 反向同步代码到文档 |
+| `ddd report` | 生成项目状态报告 |
+| `ddd archive` | 归档已完成的项目到 archives 目录 |
+| `ddd setup --tool <claude\|opencode>` | 在项目级别配置命令和技能 |
 
 ## 工作流状态机
 
+**全局工作流状态（workflow）**
+
 ```
-┌─────────┐
-│  init   │  ← 阶段初始化
-└────┬────┘
-     │ /ddd-exec
-     ▼
-┌─────────┐
-│   dev   │  ← AI Agent 开发中
-└────┬────┘
-     │ /ddd-verify
-     ▼
-┌──────────────┐
-│ issue_found  │  ← 发现问题
-└──────┬───────┘
-       │ /ddd-fix-plan && /ddd-fix-exec
+┌─────────────┐
+│ initialized │  ← 项目初始化
+└──────┬──────┘
+       │ ddd init
        ▼
-┌─────────┐
-│ fixing  │  ← 修复中
-└────┬────┘
-     │ /ddd-finish-fix
-     ▼
-┌─────────┐     │ /ddd-verify
-│   dev   │─────┘  ← 重新审核
-└────┬────┘
-     │ /ddd-finish-phrase
-     ▼
-┌──────────┐
-│ finished │  ← 阶段完成，自动推进下一阶段
-└──────────┘
+┌─────────────┐
+│  doc_ready  │  ← 规格文档已生成
+└──────┬──────┘
+       │ ddd prepare
+       ▼
+┌─────────────┐
+│  planing    │  ← 开发计划已生成
+└──────┬──────┘
+       │ ddd accept
+       ▼
+┌─────────────┐
+│  prepared   │  ← 阶段已批准
+└──────┬──────┘
+       │ ddd exec
+       ▼
+┌─────────────┐
+│ developing  │  ← 开发中
+└──────┬──────┘
+       │ 所有阶段完成
+       ▼
+┌─────────────┐
+│  archived   │  ← 已归档
+└─────────────┘
 ```
+
+**阶段状态（per phrase）**
+
+每个阶段（phrase）独立演进：
+
+```
+initialized → developing → verifying → fixing → ready
+```
+
+| 状态 | 说明 |
+|------|------|
+| `initialized` | 阶段初始化 |
+| `developing` | AI Agent 开发中 |
+| `verifying` | 验证中 |
+| `fixing` | 修复中 |
+| `ready` | 阶段完成 |
 
 ## License
 
