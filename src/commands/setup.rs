@@ -6,14 +6,13 @@ use std::path::Path;
 const PUBLIC_COMMANDS: &[(&str, &str)] = &[
     ("init", "Initialize project with context"),
     ("prepare", "Prepare phrases from specs"),
+    ("accept", "Accept development plan, init phrases"),
     ("exec", "Execute development phase"),
     ("verify", "Verify phase成果"),
-    ("fix-plan", "Generate fix plan"),
-    ("fix-exec", "Execute fix plan"),
+    ("confirm", "Confirm phase completion, advance to next"),
     ("archive", "Archive completed project"),
     ("report", "Generate project report"),
     ("sync", "Sync code to docs"),
-    ("resume", "Resume interrupted workflow"),
 ];
 
 pub fn run(cmd: crate::commands::SetupCmd) {
