@@ -42,5 +42,8 @@ fn do_run(cmd: InitCmd) -> Result<()> {
 
     println!("{}", prompt);
 
+    // 保存状态
+    ctx.save_state(&state)?;
+
     Ok(())
 }
