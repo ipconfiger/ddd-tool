@@ -18,12 +18,10 @@ pub enum Command {
     Prepare(PrepareCmd),
     Exec(ExecCmd),
     Verify(VerifyCmd),
-    FixPlan(FixPlanCmd),
-    FixExec(FixExecCmd),
+    Confirm(ConfirmCmd),
     Archive(ArchiveCmd),
     Report(ReportCmd),
     Sync(SyncCmd),
-    Resume(ResumeCmd),
     /// 扫描 phrases 目录，生成 phrases 数组
     GenPhrase,
     /// 设置当前 phase 状态为 issue_found
@@ -52,10 +50,7 @@ pub struct ExecCmd;
 pub struct VerifyCmd;
 
 #[derive(Parser, Debug)]
-pub struct FixPlanCmd;
-
-#[derive(Parser, Debug)]
-pub struct FixExecCmd;
+pub struct ConfirmCmd;
 
 #[derive(Parser, Debug)]
 pub struct ArchiveCmd;
@@ -65,9 +60,6 @@ pub struct ReportCmd;
 
 #[derive(Parser, Debug)]
 pub struct SyncCmd;
-
-#[derive(Parser, Debug)]
-pub struct ResumeCmd;
 
 /// setup: 在项目级别配置 Claude 或 OpenCode 的命令和技能
 #[derive(Parser, Debug)]
@@ -99,12 +91,10 @@ fn dispatch(cmd: Command) {
         Command::Prepare(c) => prepare::run(c),
         Command::Exec(c) => exec::run(c),
         Command::Verify(c) => verify::run(c),
-        Command::FixPlan(c) => fix_plan::run(c),
-        Command::FixExec(c) => fix_exec::run(c),
+        Command::Confirm(c) => confirm_phase::run(c),
         Command::Archive(c) => archive::run(c),
         Command::Report(c) => report::run(c),
         Command::Sync(c) => sync::run(c),
-        Command::Resume(c) => resume::run(c),
         Command::GenPhrase => { let _ = internal::gen_phrase(); },
         Command::SetIssue => { let _ = internal::set_issue(); },
         Command::FinishFix => { let _ = internal::finish_fix(); },
@@ -117,11 +107,9 @@ pub mod init;
 pub mod prepare;
 pub mod exec;
 pub mod verify;
-pub mod fix_plan;
-pub mod fix_exec;
+mod confirm_phase;
 pub mod archive;
 pub mod report;
 pub mod sync;
-pub mod resume;
 pub mod internal;
 pub mod setup;
