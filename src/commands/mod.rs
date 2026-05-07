@@ -3,6 +3,8 @@ use clap::{Parser, Subcommand};
 mod context;
 pub use context::DddContext;
 
+pub const DOCUMENT_STAGE: [&str; 3] = ["init", "doc_ready", "planing"];
+
 #[derive(Parser, Debug)]
 #[command(name = "ddd-tool")]
 #[command(version = "0.1.0")]
