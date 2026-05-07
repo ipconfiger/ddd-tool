@@ -1,5 +1,4 @@
 use crate::commands::DddContext;
-use crate::state::Phrase;
 use anyhow::Result;
 use std::ffi::OsStr;
 use std::fs;
@@ -30,8 +29,8 @@ pub fn gen_phrase() -> Result<()> {
 
     phrase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
 
-    // 生成 phrases 数组
-    let phrases: Vec<_> = phrase_files
+    // 构建 phrases 初始化数据
+    let files: Vec<_> = phrase_files
         .iter()
         .enumerate()
         .map(|(idx, entry)| {
@@ -40,31 +39,18 @@ pub fn gen_phrase() -> Result<()> {
                 "@project_docs/phases/{}",
                 entry.file_name().to_string_lossy()
             );
-            serde_json::json!({
-                "name": name,
-                "status": "init",
-                "file": file,
-                "fixes": []
-            })
+            (name, file)
         })
         .collect();
 
+    if files.is_empty() {
+        println!("显示:开发计划未生成, 请重新执行 /ddd-prepare, 停止执行!");
+        return Ok(());
+    }
+
     // 更新状态
     let mut state = ctx.load_state()?;
-    state.doc_ready = true;
-    state.workflow = "ready".to_string();
-    state.current_phase = phrases.first().and_then(|p| p.get("name")).map(|n| n.as_str().unwrap().to_string());
-    state.phrases = phrases
-        .into_iter()
-        .map(|p| {
-            Phrase {
-                name: p["name"].as_str().unwrap().to_string(),
-                status: p["status"].as_str().unwrap().to_string(),
-                file: p["file"].as_str().unwrap().to_string(),
-                fixes: vec![],
-            }
-        })
-        .collect();
+    state.init_phrases_from_files(files);
 
     ctx.save_state(&state)?;
 

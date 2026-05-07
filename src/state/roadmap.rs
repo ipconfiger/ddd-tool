@@ -48,6 +48,62 @@ impl RoadmapState {
         }
     }
 
+    /// Returns the currently active phase, if one is set.
+    pub fn current_phase(&self) -> Option<&Phrase> {
+        let name = self.current_phase.as_ref()?;
+        self.phrases.iter().find(|p| &p.name == name)
+    }
+
+    /// Advances to the next phase in sequence.
+    /// Marks the current phase as `finished`.
+    /// Returns the new current phase, or None if already at the end.
+    pub fn advance_phase(&mut self) -> Result<Option<&Phrase>> {
+        let current_name = match self.current_phase.as_ref() {
+            Some(n) => n.clone(),
+            None => return Ok(None),
+        };
+
+        let current_pos = self.phrases
+            .iter()
+            .position(|p| p.name == current_name)
+            .context("current_phase references missing phrase")?;
+
+        // Mark current as finished
+        self.phrases[current_pos].status = "finished".to_string();
+
+        // Advance to next
+        if current_pos + 1 < self.phrases.len() {
+            let next_name = self.phrases[current_pos + 1].name.clone();
+            self.current_phase = Some(next_name);
+            return Ok(self.phrases.get(current_pos + 1));
+        }
+
+        self.current_phase = None;
+        Ok(None)
+    }
+
+    /// Returns true if all phrases have reached finished status.
+    pub fn is_all_phases_complete(&self) -> bool {
+        self.phrases.iter().all(|p| p.status == "finished")
+    }
+
+    /// Initializes phrases from a list of (name, file) pairs.
+    pub fn init_phrases_from_files(&mut self, files: Vec<(String, String)>) {
+        self.doc_ready = true;
+        self.workflow = "ready".to_string();
+        self.phrases = files
+            .into_iter()
+            .enumerate()
+            .map(|(_idx, (name, file))| Phrase {
+                name,
+                status: "init".to_string(),
+                file,
+                fixes: vec![],
+            })
+            .collect();
+        self.current_phase = self.phrases.first().map(|p| p.name.clone());
+    }
+
     pub fn validate(&self) -> Result<()> {
         if !WORKFLOW_STATES.contains(&self.workflow.as_str()) {
             anyhow::bail!(
