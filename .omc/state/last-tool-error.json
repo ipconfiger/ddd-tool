@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk git worktree remove /Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor\",\"description\":\"Remove worktree\"}",
-  "error": "Exit code 128\nFAILED: git worktree remove /Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor\nfatal: '/Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor' contains modified or untracked files, use --force to delete it",
-  "timestamp": "2026-05-07T08:53:50.628Z",
-  "retry_count": 6
+  "tool_input_preview": "{\"command\":\"git rm -rf .history/ && git rm -rf .omc/sessions/ && git rm -rf .omc/state/agent-replay* && git rm -rf .omc/state/checkpoints/ && git commit -m \\\"$(cat <<'EOF'\\nchore: remove session histo...",
+  "error": "Exit code 128\nfatal: pathspec '.history/' did not match any files",
+  "timestamp": "2026-05-07T10:24:57.249Z",
+  "retry_count": 2
 }
