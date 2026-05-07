@@ -9,6 +9,7 @@ const PUBLIC_COMMANDS: &[(&str, &str)] = &[
     ("accept", "Accept development plan, init phrases"),
     ("exec", "Execute development phase"),
     ("verify", "Verify phase成果"),
+    ("audit", "Audit specs and plans"),
     ("confirm", "Confirm phase completion, advance to next"),
     ("archive", "Archive completed project"),
     ("report", "Generate project report"),

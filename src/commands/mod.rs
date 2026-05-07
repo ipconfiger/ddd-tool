@@ -20,6 +20,7 @@ pub enum Command {
     Prepare(PrepareCmd),
     Exec(ExecCmd),
     Verify(VerifyCmd),
+    Audit(AuditCmd),
     Confirm(ConfirmCmd),
     Archive(ArchiveCmd),
     Report(ReportCmd),
@@ -44,6 +45,9 @@ pub struct ExecCmd;
 
 #[derive(Parser, Debug)]
 pub struct VerifyCmd;
+
+#[derive(Parser, Debug)]
+pub struct AuditCmd;
 
 #[derive(Parser, Debug)]
 pub struct ConfirmCmd;
@@ -87,6 +91,7 @@ fn dispatch(cmd: Command) {
         Command::Prepare(c) => prepare::run(c),
         Command::Exec(c) => exec::run(c),
         Command::Verify(c) => verify::run(c),
+        Command::Audit(c) => audit::run(c),
         Command::Confirm(c) => confirm_phase::run(c),
         Command::Archive(c) => archive::run(c),
         Command::Report(c) => report::run(c),
@@ -100,6 +105,7 @@ pub mod init;
 pub mod prepare;
 pub mod exec;
 pub mod verify;
+pub mod audit;
 mod confirm_phase;
 pub mod archive;
 pub mod report;
