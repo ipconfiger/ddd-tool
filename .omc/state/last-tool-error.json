@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk cargo build 2>&1\",\"description\":\"Build\"}",
-  "error": "Exit code 101\ncargo build: 1 errors, 0 warnings (1 crates)\n═══════════════════════════════════════\nerror[E0425]: cannot find value `ddd_binary` in this scope\n  --> src/commands/setup.rs:75:13\n   |\n50 | fn setup_claude(_ddd_binary: &Path, project_root: &Path) -> Result<()> {\n   |                 ----------- `_ddd_binary` defined here\n...\n75 |             ddd_binary.to_string_lossy(),\n   |             ^^^^^^^^^^\n   |\nhelp: the leading underscore in `_ddd_binary` marks it as unused, consider renami...",
-  "timestamp": "2026-04-19T15:29:19.178Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"rtk git worktree remove /Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor\",\"description\":\"Remove worktree\"}",
+  "error": "Exit code 128\nFAILED: git worktree remove /Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor\nfatal: '/Users/alex/Projects/workspace/ddd_proj/.worktrees/state-machine-refactor' contains modified or untracked files, use --force to delete it",
+  "timestamp": "2026-05-07T08:53:50.628Z",
+  "retry_count": 6
 }

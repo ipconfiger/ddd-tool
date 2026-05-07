@@ -25,13 +25,7 @@ pub enum Command {
     Report(ReportCmd),
     Sync(SyncCmd),
     /// 扫描 phrases 目录，生成 phrases 数组
-    GenPhrase,
-    /// 设置当前 phase 状态为 issue_found
-    SetIssue,
-    /// 完成修复
-    FinishFix,
-    /// 完成阶段
-    FinishPhrase,
+    Accept,
     /// setup: 在项目级别配置命令和技能
     Setup(SetupCmd),
 }
@@ -97,10 +91,7 @@ fn dispatch(cmd: Command) {
         Command::Archive(c) => archive::run(c),
         Command::Report(c) => report::run(c),
         Command::Sync(c) => sync::run(c),
-        Command::GenPhrase => { let _ = internal::gen_phrase(); },
-        Command::SetIssue => { let _ = internal::set_issue(); },
-        Command::FinishFix => { let _ = internal::finish_fix(); },
-        Command::FinishPhrase => { let _ = internal::finish_phrase(); },
+        Command::Accept => { let _ = internal::accept(); },
         Command::Setup(c) => setup::run(c),
     }
 }

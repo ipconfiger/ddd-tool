@@ -80,33 +80,63 @@
   },
   "hotPaths": [
     {
+      "path": "src/commands/mod.rs",
+      "accessCount": 23,
+      "lastAccessed": 1778149333702,
+      "type": "file"
+    },
+    {
       "path": "src/commands/setup.rs",
       "accessCount": 21,
       "lastAccessed": 1776613701922,
       "type": "file"
     },
     {
-      "path": "src/commands/mod.rs",
-      "accessCount": 16,
-      "lastAccessed": 1776613040125,
+      "path": "src/state/roadmap.rs",
+      "accessCount": 13,
+      "lastAccessed": 1778147908317,
       "type": "file"
     },
     {
       "path": "src/commands/internal.rs",
-      "accessCount": 5,
-      "lastAccessed": 1776609762280,
+      "accessCount": 11,
+      "lastAccessed": 1778149324622,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/context.rs",
+      "accessCount": 4,
+      "lastAccessed": 1778144284086,
+      "type": "file"
+    },
+    {
+      "path": "src/state/constants.rs",
+      "accessCount": 4,
+      "lastAccessed": 1778147907944,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/exec.rs",
+      "accessCount": 4,
+      "lastAccessed": 1778147915423,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 3,
+      "lastAccessed": 1778144176279,
+      "type": "directory"
+    },
+    {
+      "path": "src/commands/confirm_phase.rs",
+      "accessCount": 3,
+      "lastAccessed": 1778147914684,
       "type": "file"
     },
     {
       "path": "src",
       "accessCount": 2,
       "lastAccessed": 1776609874578,
-      "type": "directory"
-    },
-    {
-      "path": "",
-      "accessCount": 2,
-      "lastAccessed": 1776610200859,
       "type": "directory"
     },
     {
@@ -158,12 +188,6 @@
       "type": "directory"
     },
     {
-      "path": "src/commands/context.rs",
-      "accessCount": 1,
-      "lastAccessed": 1776612959430,
-      "type": "file"
-    },
-    {
       "path": "src/prompts/mod.rs",
       "accessCount": 1,
       "lastAccessed": 1776612979885,
@@ -173,6 +197,30 @@
       "path": ".opencode/commands/ddd-init.md",
       "accessCount": 1,
       "lastAccessed": 1776613598949,
+      "type": "file"
+    },
+    {
+      "path": "src/state/mod.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778144163613,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/gen_phase.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778144169383,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/verify.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778144169897,
+      "type": "file"
+    },
+    {
+      "path": "src/commands/prepare.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778144175492,
       "type": "file"
     }
   ],
