@@ -21,6 +21,17 @@ impl DddContext {
         })
     }
 
+    pub fn with_root(project_root: PathBuf) -> Result<Self> {
+        let roadmap_path = project_root.join("project_docs").join("roadmap.json");
+
+        let store = RoadmapStore::new(roadmap_path.to_str().unwrap());
+
+        Ok(Self {
+            store,
+            project_root,
+        })
+    }
+
     pub fn load_state(&self) -> Result<RoadmapState> {
         self.store.load()
     }

@@ -480,4 +480,103 @@ mod tests {
         assert!(!loaded.doc_ready);
         assert!(loaded.phrases.is_empty());
     }
+
+    // ========== Integration Tests ==========
+
+    #[test]
+    fn test_phase_advance_full_lifecycle() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("roadmap.json");
+        let store = RoadmapStore::new(path.to_str().unwrap());
+
+        // Setup: init phrases via init_phrases_from_files
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("Phrase0".to_string(), "@project_docs/phases/0-phase.md".to_string()),
+            ("Phrase1".to_string(), "@project_docs/phases/1-phase.md".to_string()),
+            ("Phrase2".to_string(), "@project_docs/phases/2-phase.md".to_string()),
+        ]);
+        store.save(&state).unwrap();
+
+        // Verify initial state
+        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
+        assert_eq!(state.phrases.len(), 3);
+        assert_eq!(state.phrases[0].status, "init");
+        assert!(!state.is_all_phases_complete());
+
+        // Advance phase 1
+        let next = state.advance_phase().unwrap();
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
+        assert_eq!(state.phrases[0].status, "finished");
+        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
+        assert!(!state.is_all_phases_complete());
+        store.save(&state).unwrap();
+
+        // Advance phase 2
+        let next = state.advance_phase().unwrap();
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase2"));
+        assert_eq!(state.phrases[1].status, "finished");
+        assert_eq!(state.current_phase, Some("Phrase2".to_string()));
+        assert!(!state.is_all_phases_complete());
+        store.save(&state).unwrap();
+
+        // Advance phase 3 (last)
+        let next = state.advance_phase().unwrap();
+        assert!(next.is_none());
+        assert_eq!(state.phrases[2].status, "finished");
+        assert_eq!(state.current_phase, None);
+        assert!(state.is_all_phases_complete());
+        store.save(&state).unwrap();
+
+        // Reload from disk and verify persistence
+        let loaded = store.load().unwrap();
+        assert_eq!(loaded.current_phase, None);
+        assert_eq!(loaded.phrases[0].status, "finished");
+        assert_eq!(loaded.phrases[1].status, "finished");
+        assert_eq!(loaded.phrases[2].status, "finished");
+        assert!(loaded.is_all_phases_complete());
+    }
+
+    #[test]
+    fn test_init_phrases_from_files_sets_correct_state() {
+        let mut state = RoadmapState::new();
+
+        state.init_phrases_from_files(vec![
+            ("PhaseA".to_string(), "@project_docs/phases/a.md".to_string()),
+            ("PhaseB".to_string(), "@project_docs/phases/b.md".to_string()),
+        ]);
+
+        assert!(state.doc_ready);
+        assert_eq!(state.workflow, "ready");
+        assert_eq!(state.current_phase, Some("PhaseA".to_string()));
+        assert_eq!(state.phrases.len(), 2);
+        assert_eq!(state.phrases[0].name, "PhaseA");
+        assert_eq!(state.phrases[0].status, "init");
+        assert_eq!(state.phrases[1].name, "PhaseB");
+        assert_eq!(state.phrases[1].status, "init");
+    }
+
+    #[test]
+    fn test_advance_phase_when_no_current_phase() {
+        let mut state = RoadmapState::new();
+        state.current_phase = None;
+
+        let result = state.advance_phase().unwrap();
+        assert!(result.is_none());
+        assert_eq!(state.current_phase, None);
+    }
+
+    #[test]
+    fn test_current_phase_returns_correct_phrase() {
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("P0".to_string(), "f0".to_string()),
+            ("P1".to_string(), "f1".to_string()),
+        ]);
+
+        assert_eq!(state.current_phase().map(|p| p.name.as_str()), Some("P0"));
+
+        state.advance_phase().unwrap();
+        assert_eq!(state.current_phase().map(|p| p.name.as_str()), Some("P1"));
+    }
 }
