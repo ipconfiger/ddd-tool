@@ -6,8 +6,7 @@ const VERIFY_PROMPT: &str = r#"根据开发计划: @{file} ,并从开发计划�
 1. 对第一阶段开发进行代码审核.
 2. 运行所有单元测试
 3. 核对spec对代码进行深度事实审核
-如果所有验证项目均没有issuse, 就执行 !`ddd-tool finish_phrase` 然后 输出 "太开心啦, 通过啦!".
-如果有issuse, 就执行 !`ddd-tool set-issuse`."#;
+审核完成后输出审核结果."#;
 
 pub fn run(_cmd: VerifyCmd) {
     if let Err(e) = do_run() {
@@ -19,22 +18,32 @@ fn do_run() -> Result<()> {
     let ctx = DddContext::new()?;
 
     // 校验状态
-    let state = ctx.load_state()?;
+    let mut state = ctx.load_state()?;
 
-    let current_phase = state.current_phase.as_ref()
-        .and_then(|name| state.phrases.iter().find(|p| &p.name == name));
+    let current_name = match state.current_phase.as_ref() {
+        Some(n) => n.clone(),
+        None => {
+            println!("请先完成开发阶段");
+            return Ok(());
+        }
+    };
 
-    let phase = if let Some(p) = current_phase {
-        p
-    } else {
-        println!("请先完成开发阶段");
-        return Ok(());
+    let phase = state.phrases.iter_mut().find(|p| p.name == current_name);
+    let phase = match phase {
+        Some(p) => p,
+        None => {
+            println!("请先完成开发阶段");
+            return Ok(());
+        }
     };
 
     if phase.status != "dev" {
         println!("请先完成开发阶段");
         return Ok(());
     }
+
+    // 更新状态为 verifying
+    phase.status = "verifying".to_string();
 
     // 渲染 Prompt
     let prompt = render(
@@ -44,8 +53,9 @@ fn do_run() -> Result<()> {
     );
 
     println!("{}", prompt);
-    println!();
-    println!("验证通过后请执行 !ddd-tool finish-phrase 或 !ddd-tool set-issue");
+
+    // 保存状态
+    ctx.save_state(&state)?;
 
     Ok(())
 }

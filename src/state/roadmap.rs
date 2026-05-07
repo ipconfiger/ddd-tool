@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use anyhow::{Context, Result};
 
 pub const WORKFLOW_STATES: [&str; 4] = ["init", "ready", "dev", "archived"];
-pub const PHRASE_STATES: [&str; 5] = ["init", "dev", "issue_found", "fixing", "finished"];
+pub const PHRASE_STATES: [&str; 6] = ["init", "dev", "verifying", "issue_found", "fixing", "finished"];
 pub const FIX_STATES: [&str; 5] = ["pending", "planned", "executing", "done", "failed"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
