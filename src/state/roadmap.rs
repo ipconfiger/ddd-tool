@@ -484,61 +484,7 @@ mod tests {
     // ========== Integration Tests ==========
 
     #[test]
-    fn test_phase_advance_full_lifecycle() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().join("roadmap.json");
-        let store = RoadmapStore::new(path.to_str().unwrap());
-
-        // Setup: init phrases via init_phrases_from_files
-        let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
-            ("Phrase0".to_string(), "@project_docs/phases/0-phase.md".to_string()),
-            ("Phrase1".to_string(), "@project_docs/phases/1-phase.md".to_string()),
-            ("Phrase2".to_string(), "@project_docs/phases/2-phase.md".to_string()),
-        ]);
-        store.save(&state).unwrap();
-
-        // Verify initial state
-        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
-        assert_eq!(state.phrases.len(), 3);
-        assert_eq!(state.phrases[0].status, "init");
-        assert!(!state.is_all_phases_complete());
-
-        // Advance phase 1
-        let next = state.advance_phase().unwrap();
-        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
-        assert_eq!(state.phrases[0].status, "finished");
-        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
-        assert!(!state.is_all_phases_complete());
-        store.save(&state).unwrap();
-
-        // Advance phase 2
-        let next = state.advance_phase().unwrap();
-        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase2"));
-        assert_eq!(state.phrases[1].status, "finished");
-        assert_eq!(state.current_phase, Some("Phrase2".to_string()));
-        assert!(!state.is_all_phases_complete());
-        store.save(&state).unwrap();
-
-        // Advance phase 3 (last)
-        let next = state.advance_phase().unwrap();
-        assert!(next.is_none());
-        assert_eq!(state.phrases[2].status, "finished");
-        assert_eq!(state.current_phase, None);
-        assert!(state.is_all_phases_complete());
-        store.save(&state).unwrap();
-
-        // Reload from disk and verify persistence
-        let loaded = store.load().unwrap();
-        assert_eq!(loaded.current_phase, None);
-        assert_eq!(loaded.phrases[0].status, "finished");
-        assert_eq!(loaded.phrases[1].status, "finished");
-        assert_eq!(loaded.phrases[2].status, "finished");
-        assert!(loaded.is_all_phases_complete());
-    }
-
-    #[test]
-    fn test_init_phrases_from_files_sets_correct_state() {
+    fn test_accept_initializes_phrases_correctly() {
         let mut state = RoadmapState::new();
 
         state.init_phrases_from_files(vec![
@@ -554,6 +500,155 @@ mod tests {
         assert_eq!(state.phrases[0].status, "init");
         assert_eq!(state.phrases[1].name, "PhaseB");
         assert_eq!(state.phrases[1].status, "init");
+    }
+
+    #[test]
+    fn test_exec_sets_phrase_to_dev() {
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        ]);
+
+        // Simulate exec: find current phase and set status to "dev" if "init"
+        let current_name = state.current_phase.clone().unwrap();
+        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+            if phase.status == "init" {
+                phase.status = "dev".to_string();
+            }
+        }
+        state.workflow = "dev".to_string();
+
+        assert_eq!(state.phrases[0].status, "dev");
+        assert_eq!(state.workflow, "dev");
+        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
+    }
+
+    #[test]
+    fn test_exec_skips_finished_phases() {
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        ]);
+
+        // Phase0 is finished
+        state.phrases[0].status = "finished".to_string();
+        state.current_phase = Some("Phrase1".to_string());
+
+        // Simulate exec finding next non-finished phase
+        let current_name = state.current_phase.clone().unwrap();
+        let phase = state.phrases.iter().find(|p| p.name == current_name);
+        let (name, _) = match phase {
+            Some(p) if p.status == "finished" => {
+                let idx = state.phrases.iter().position(|p| p.name == current_name).unwrap();
+                let next = state.phrases.get(idx + 1);
+                match next {
+                    Some(np) => (np.name.clone(), np.file.clone()),
+                    None => return, // no more phases
+                }
+            }
+            Some(p) => (p.name.clone(), p.file.clone()),
+            None => return,
+        };
+
+        assert_eq!(name, "Phrase1");
+    }
+
+    #[test]
+    fn test_confirm_advances_phase_and_marks_finished() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("roadmap.json");
+        let store = RoadmapStore::new(path.to_str().unwrap());
+
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        ]);
+        // Simulate exec: set first phrase to dev
+        state.phrases[0].status = "dev".to_string();
+        state.workflow = "dev".to_string();
+        store.save(&state).unwrap();
+
+        // Confirm: advance_phase
+        let next = state.advance_phase().unwrap();
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
+        assert_eq!(state.phrases[0].status, "finished"); // marked finished
+        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
+        assert!(!state.is_all_phases_complete());
+        store.save(&state).unwrap();
+
+        // Reload and verify
+        let loaded = store.load().unwrap();
+        assert_eq!(loaded.phrases[0].status, "finished");
+        assert_eq!(loaded.current_phase, Some("Phrase1".to_string()));
+    }
+
+    #[test]
+    fn test_full_workflow_accept_exec_confirm_archive() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("roadmap.json");
+        let store = RoadmapStore::new(path.to_str().unwrap());
+
+        // Step 1: accept - init phrases
+        let mut state = RoadmapState::new();
+        state.init_phrases_from_files(vec![
+            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        ]);
+        assert_eq!(state.workflow, "ready");
+        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
+        assert_eq!(state.phrases[0].status, "init");
+        store.save(&state).unwrap();
+
+        // Step 2: exec - set phrase to dev
+        let current_name = state.current_phase.clone().unwrap();
+        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+            if phase.status == "init" {
+                phase.status = "dev".to_string();
+            }
+        }
+        state.workflow = "dev".to_string();
+        assert_eq!(state.phrases[0].status, "dev");
+        assert_eq!(state.workflow, "dev");
+        store.save(&state).unwrap();
+
+        // Step 3: confirm - advance to next phase
+        let next = state.advance_phase().unwrap();
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
+        assert_eq!(state.phrases[0].status, "finished");
+        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
+        store.save(&state).unwrap();
+
+        // Step 4: exec on phrase1
+        let current_name = state.current_phase.clone().unwrap();
+        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+            if phase.status == "init" {
+                phase.status = "dev".to_string();
+            }
+        }
+        assert_eq!(state.phrases[1].status, "dev");
+        store.save(&state).unwrap();
+
+        // Step 5: confirm - last phase, returns None
+        let next = state.advance_phase().unwrap();
+        assert!(next.is_none());
+        assert_eq!(state.phrases[1].status, "finished");
+        assert_eq!(state.current_phase, None);
+        assert!(state.is_all_phases_complete());
+        store.save(&state).unwrap();
+
+        // Step 6: archive - workflow = "archived"
+        state.workflow = "archived".to_string();
+        store.save(&state).unwrap();
+
+        // Verify final persistence
+        let loaded = store.load().unwrap();
+        assert_eq!(loaded.workflow, "archived");
+        assert_eq!(loaded.phrases[0].status, "finished");
+        assert_eq!(loaded.phrases[1].status, "finished");
+        assert!(loaded.is_all_phases_complete());
     }
 
     #[test]
