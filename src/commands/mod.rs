@@ -24,6 +24,7 @@ pub enum Command {
     Confirm(ConfirmCmd),
     Archive(ArchiveCmd),
     Report(ReportCmd),
+    Final(FinalCmd),
     Sync(SyncCmd),
     /// 扫描 phrases 目录，生成 phrases 数组
     Accept,
@@ -61,6 +62,9 @@ pub struct ReportCmd;
 #[derive(Parser, Debug)]
 pub struct SyncCmd;
 
+#[derive(Parser, Debug)]
+pub struct FinalCmd;
+
 /// setup: 在项目级别配置 Claude 或 OpenCode 的命令和技能
 #[derive(Parser, Debug)]
 pub struct SetupCmd {
@@ -95,6 +99,7 @@ fn dispatch(cmd: Command) {
         Command::Confirm(c) => confirm_phase::run(c),
         Command::Archive(c) => archive::run(c),
         Command::Report(c) => report::run(c),
+        Command::Final(c) => final_verify::run(c),
         Command::Sync(c) => sync::run(c),
         Command::Accept => { let _ = internal::accept(); },
         Command::Setup(c) => setup::run(c),
@@ -112,3 +117,4 @@ pub mod report;
 pub mod sync;
 pub mod internal;
 pub mod setup;
+mod final_verify;

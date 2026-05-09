@@ -7,7 +7,12 @@ const AUDIT_PROMPT: &str = r#"根据 @project_docs/specs/ 目录下的所有的�
 1. 规格文档与实际代码的一致性
 2. 开发计划是否完整覆盖所有规格
 3. 代码实现是否符合规格要求
-4. 是否有遗漏的功能点"#;
+4. 是否有遗漏的功能点
+5. 是否有违反设计原则的实现
+将评审的任务委托给子代理执行.
+当评审完成后, 如果有问题, 就按照优先级,委托给子代理串行执行修复.
+全部完成后提醒用户是否要执行 /ddd-accept 批准设计
+"#;
 
 pub fn run(_cmd: crate::commands::AuditCmd) {
     if let Err(e) = do_run() {
@@ -26,8 +31,8 @@ fn do_run() -> Result<()> {
     }
 
     // 渲染 Prompt
-    let prompt = render(specs_dir.to_string_lossy().as_ref());
-    println!("{}", prompt);
+    //let prompt = render(specs_dir.to_string_lossy().as_ref());
+    println!("{}", AUDIT_PROMPT);
 
     Ok(())
 }

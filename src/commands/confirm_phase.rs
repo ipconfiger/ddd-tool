@@ -21,14 +21,18 @@ fn do_run() -> Result<()> {
         println!("尚未启动开发");
         return Ok(());
     }
+    let this_name = state.current_phase.as_ref().unwrap().to_string();
 
     match state.advance_phase()? {
         Some(next) => {
             let next_name = next.name.clone();
+            state.current_phase = Some(next_name.to_string());
             ctx.save_state(&state)?;
             println!("接下来调用 /ddd-exec 开始实现 {}", next_name);
         }
         None => {
+            state.set_phase_finished(this_name.as_str());
+            ctx.save_state(&state)?;
             if state.is_all_phases_complete() {
                 println!("全部阶段已经开发完成, 根据 @project_docs/specs/ 目录下的所有的规格文件 和 @project_docs/phases/ 的开发计划作为资料,结合当前实现的代码,进行交叉事实审核,高精度代码评审. 结束后询问是否执行 /ddd-achive 归档此轮开发");
             }

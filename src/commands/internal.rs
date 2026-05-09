@@ -34,7 +34,7 @@ pub fn accept() -> Result<()> {
         .iter()
         .enumerate()
         .map(|(idx, entry)| {
-            let name = format!("Phrase{}", idx);
+            let name = format!("Phase{}", idx + 1);
             let file = format!(
                 "@project_docs/phases/{}",
                 entry.file_name().to_string_lossy()
@@ -44,7 +44,7 @@ pub fn accept() -> Result<()> {
         .collect();
 
     if files.is_empty() {
-        println!("显示:开发计划未生成, 请重新执行 /ddd-prepare, 停止执行!");
+        println!("显示:开发计划未生成, 请重新执行 /ddd-prepare, **important** 状态机由ddd-tool维护, 不允许修改 roadmap.json");
         return Ok(());
     }
 
@@ -54,7 +54,7 @@ pub fn accept() -> Result<()> {
 
     ctx.save_state(&state)?;
 
-    println!("状态机已生成，共 {} 个阶段", state.phrases.len());
+    println!("状态机已生成，共 {} 个阶段, 提示: 请执行 /ddd-exec 开始启动实际开发, 然后停止!", state.phrases.len());
 
     Ok(())
 }

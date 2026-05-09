@@ -7,9 +7,19 @@ use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 
+pub const WORKFLOW_INIT: &str = "init";
+pub const WORKFLOW_READY: &str = "ready";
+pub const WORKFLOW_DEV: &str = "dev";
+pub const WORKFLOW_ARCHIVED: &str = "archived";
+
+pub const PHASE_INIT: &str = "init";
+pub const PHASE_DEV: &str = "dev";
+pub const PHASE_VERIFYING: &str = "verifying";
+pub const PHASE_FINISHED: &str = "finished";
+
+
 pub const WORKFLOW_STATES: [&str; 4] = ["init", "ready", "dev", "archived"];
-pub const PHRASE_STATES: [&str; 6] = ["init", "dev", "verifying", "issue_found", "fixing", "finished"];
-pub const FIX_STATES: [&str; 5] = ["pending", "planned", "executing", "done", "failed"];
+pub const PHASE_STATES: [&str; 4] = ["init", "dev", "verifying", "finished"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Fix {
@@ -49,9 +59,31 @@ impl RoadmapState {
     }
 
     /// Returns the currently active phase, if one is set.
-    pub fn current_phase(&self) -> Option<&Phrase> {
-        let name = self.current_phase.as_ref()?;
-        self.phrases.iter().find(|p| &p.name == name)
+    pub fn fetch_current_phase(&mut self) -> Option<&Phrase> {
+        if let Some(phase) = if let Some(current_phase_name) = &self.current_phase {
+            self.phrases.iter().find(|p| &p.name == current_phase_name)
+        } else {
+            self.phrases.first()
+        }{
+            self.current_phase = Some(phase.name.to_string());
+            Some(phase)
+        }else{
+            None
+        }
+    }
+
+    pub fn set_phase_dev(&mut self, phase_name: &str) {
+        self.workflow = WORKFLOW_DEV.to_string();
+        self.current_phase = Some(phase_name.to_string());
+        if let Some(phase) = self.phrases.iter_mut().find(|p| &p.name == phase_name) {
+            phase.status = PHASE_DEV.to_string();
+        }
+    }
+
+    pub fn set_phase_finished(&mut self, phase_name: &str) {
+        if let Some(phase) = self.phrases.iter_mut().find(|p| &p.name == phase_name) {
+            phase.status = PHASE_FINISHED.to_string();
+        }
     }
 
     /// Advances to the next phase in sequence.
@@ -96,7 +128,7 @@ impl RoadmapState {
             .enumerate()
             .map(|(_idx, (name, file))| Phrase {
                 name,
-                status: "init".to_string(),
+                status: PHASE_INIT.to_string(),
                 file,
                 fixes: vec![],
             })
@@ -114,21 +146,12 @@ impl RoadmapState {
         }
 
         for phrase in &self.phrases {
-            if !PHRASE_STATES.contains(&phrase.status.as_str()) {
+            if !PHASE_STATES.contains(&phrase.status.as_str()) {
                 anyhow::bail!(
                     "Invalid phrase status: {}, expected one of: {:?}",
                     phrase.status,
-                    PHRASE_STATES
+                    PHASE_STATES
                 );
-            }
-            for fix in &phrase.fixes {
-                if !FIX_STATES.contains(&fix.status.as_str()) {
-                    anyhow::bail!(
-                        "Invalid fix status: {}, expected one of: {:?}",
-                        fix.status,
-                        FIX_STATES
-                    );
-                }
             }
         }
 
@@ -669,9 +692,17 @@ mod tests {
             ("P1".to_string(), "f1".to_string()),
         ]);
 
-        assert_eq!(state.current_phase().map(|p| p.name.as_str()), Some("P0"));
+        assert_eq!(state.fetch_current_phase().map(|p| p.name.as_str()), Some("P0"));
 
         state.advance_phase().unwrap();
-        assert_eq!(state.current_phase().map(|p| p.name.as_str()), Some("P1"));
+        assert_eq!(state.fetch_current_phase().map(|p| p.name.as_str()), Some("P1"));
     }
+
+    #[test]
+    fn test_all_phases_complete() {
+
+
+
+    }
+
 }
