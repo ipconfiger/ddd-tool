@@ -12,6 +12,8 @@
 
 所以如何让Coding Agent能够几行需求就一次性生成整个程序, 落实到工程上, 就是如何合理的利用上下文窗口, 让Agent能够拿到尽量精简干净的上下文, 在200K窗口内, 严格按照规格生成制成品, 如果要做的程序很大, 那么就需要切分成多个小的开发阶段, 一个阶段一个阶段的实现, 每一个阶段都能在一个上下文窗口中完成, 由现在大模型的能力,完全能够保证质量, 最后每一个阶段完成后, 有一个总体蓝图能够完成组装, 最后完成整个程序的开发.
 
+[![使用演示](https://i9.ytimg.com/vi_webp/4PFDykhqXCI/mq1.webp?sqp=CPCOgNAG-oaymwEmCMACELQB8quKqQMa8AEB-AH6CIAC0AWKAgwIABABGF0gXShdMA8=&rs=AOn4CLDg7VCBHh0uaaAjcrSNclIVHeyCrg)](https://youtu.be/4PFDykhqXCI)
+
 ## 设计理念
 
 DDD 的核心设计围绕三个问题：
