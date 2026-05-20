@@ -86,6 +86,22 @@ impl RoadmapState {
         }
     }
 
+    pub fn is_current_init(&self) -> bool {
+        let current_name = match self.current_phase.as_ref() {
+            Some(n) => n.clone(),
+            None => "".to_string(),
+        };
+
+        if let Ok(current_pos) = self.phrases
+            .iter()
+            .position(|p| p.name == current_name)
+            .context("current_phase references missing phrase"){
+            self.phrases[current_pos].status == "init".to_string()
+        }else{
+            true
+        }
+    }
+
     /// Advances to the next phase in sequence.
     /// Marks the current phase as `finished`.
     /// Returns the new current phase, or None if already at the end.

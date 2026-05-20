@@ -13,7 +13,7 @@ fn do_run() -> Result<()> {
     let mut state = ctx.load_state()?;
 
     if !state.doc_ready {
-        println!("ECHO:请先完成文档准备阶段: 调用 /ddd-accept` 批准开发计划. 停止执行!");
+        println!("ECHO:请先完成文档准备阶段: 调用 /ddd-accept` 批准开发计划. 停止执行, 等待用户确认!");
         return Ok(());
     }
 
@@ -21,6 +21,11 @@ fn do_run() -> Result<()> {
         println!("尚未启动开发");
         return Ok(());
     }
+    if state.is_current_init() {
+        println!("等待用户输入");
+        return Ok(());
+    }
+
     let this_name = state.current_phase.as_ref().unwrap().to_string();
 
     match state.advance_phase()? {
@@ -28,7 +33,7 @@ fn do_run() -> Result<()> {
             let next_name = next.name.clone();
             state.current_phase = Some(next_name.to_string());
             ctx.save_state(&state)?;
-            println!("接下来调用 /ddd-exec 开始实现 {}", next_name);
+            println!("提示用户: 接下来可以调用 /ddd-exec 开始实现 {}, 等待用户确认后才开始执行", next_name);
         }
         None => {
             state.set_phase_finished(this_name.as_str());
