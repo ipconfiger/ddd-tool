@@ -21,6 +21,8 @@ impl DddContext {
         })
     }
 
+    #[allow(dead_code)]
+    #[allow(dead_code)]
     pub fn with_root(project_root: PathBuf) -> Result<Self> {
         let roadmap_path = project_root.join("project_docs").join("roadmap.json");
 

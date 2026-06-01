@@ -2,7 +2,7 @@
 
 ## Requirements Summary
 
-修复 `exec.rs` 中的构建错误（`state.phases` → `state.phrases`），并完善 `Cargo.toml` 元数据以满足 crates.io 发布要求。
+修复 `exec.rs` 中的构建错误（`state.phases` → `state.phases`），并完善 `Cargo.toml` 元数据以满足 crates.io 发布要求。
 
 ## Acceptance Criteria
 
@@ -17,22 +17,22 @@
 
 **文件**: `src/commands/exec.rs`
 
-将 `state.phases` 和 `new_state.phases` 全部替换为 `state.phrases` 和 `new_state.phrases`（共 5 处）
+将 `state.phases` 和 `new_state.phases` 全部替换为 `state.phases` 和 `new_state.phases`（共 5 处）
 
 ```diff
 - state.phases.iter().find(|p| &p.name == name)
-+ state.phrases.iter().find(|p| &p.name == name)
++ state.phases.iter().find(|p| &p.name == name)
 
 - state.phases.first()
-+ state.phrases.first()
++ state.phases.first()
 
 - state.phases.iter().position(...)
 - idx.and_then(|i| state.phases.get(i + 1))
-+ state.phrases.iter().position(...)
-+ idx.and_then(|i| state.phrases.get(i + 1))
++ state.phases.iter().position(...)
++ idx.and_then(|i| state.phases.get(i + 1))
 
 - new_state.phases.iter_mut().find(...)
-+ new_state.phrases.iter_mut().find(...)
++ new_state.phases.iter_mut().find(...)
 ```
 
 ### Step 2: 完善 Cargo.toml 元数据
@@ -77,20 +77,20 @@ cargo test
 ## Risks and Mitigations
 
 - **风险**: 字段名修改影响其他模块
-  - **缓解**: grep 确认只有 exec.rs 使用 `.phases`，其他模块已用 `.phrases`
+  - **缓解**: grep 确认只有 exec.rs 使用 `.phases`，其他模块已用 `.phases`
 
 ## ADR
 
-**Decision**: 修复 exec.rs 的 `phases` → `phrases`，不重命名 `RoadmapState.phrases` 字段
+**Decision**: 修复 exec.rs 的 `phases` → `phases`，不重命名 `RoadmapState.phases` 字段
 
 **Drivers**:
-- spec 文档 (`docs/new_spec_v2.md`) 使用 `phrases` 作为字段名
-- `RoadmapState` 定义在 `roadmap.rs` 中使用 `phrases`
-- 其他所有命令模块（verify, fix_plan, internal 等）已正确使用 `phrases`
+- spec 文档 (`docs/new_spec_v2.md`) 使用 `phases` 作为字段名
+- `RoadmapState` 定义在 `roadmap.rs` 中使用 `phases`
+- 其他所有命令模块（verify, fix_plan, internal 等）已正确使用 `phases`
 - exec.rs 是唯一错误引用 `phases` 的文件
 
 **Alternatives considered**:
-- 重命名 `RoadmapState.phrases` → `phases`：工作量大，需要修改 roadmap.rs 和所有引用处
+- 重命名 `RoadmapState.phases` → `phases`：工作量大，需要修改 roadmap.rs 和所有引用处
 - 保持 exec.rs 不变：无法通过编译
 
 **Why chosen**: 最少改动，最大一致。exec.rs 的 `phases` 明显是笔误。

@@ -7,14 +7,10 @@ use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 
-pub const WORKFLOW_INIT: &str = "init";
-pub const WORKFLOW_READY: &str = "ready";
 pub const WORKFLOW_DEV: &str = "dev";
-pub const WORKFLOW_ARCHIVED: &str = "archived";
 
 pub const PHASE_INIT: &str = "init";
 pub const PHASE_DEV: &str = "dev";
-pub const PHASE_VERIFYING: &str = "verifying";
 pub const PHASE_FINISHED: &str = "finished";
 
 
@@ -29,7 +25,7 @@ pub struct Fix {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Phrase {
+pub struct Phase {
     pub name: String,
     pub status: String,
     pub file: String,
@@ -43,7 +39,7 @@ pub struct RoadmapState {
     pub workflow: String,
     pub current_phase: Option<String>,
     pub doc_ready: bool,
-    pub phrases: Vec<Phrase>,
+    pub phases: Vec<Phase>,
 }
 
 impl RoadmapState {
@@ -54,16 +50,16 @@ impl RoadmapState {
             workflow: "init".to_string(),
             current_phase: None,
             doc_ready: false,
-            phrases: vec![],
+            phases: vec![],
         }
     }
 
     /// Returns the currently active phase, if one is set.
-    pub fn fetch_current_phase(&mut self) -> Option<&Phrase> {
+    pub fn fetch_current_phase(&mut self) -> Option<&Phase> {
         if let Some(phase) = if let Some(current_phase_name) = &self.current_phase {
-            self.phrases.iter().find(|p| &p.name == current_phase_name)
+            self.phases.iter().find(|p| &p.name == current_phase_name)
         } else {
-            self.phrases.first()
+            self.phases.first()
         }{
             self.current_phase = Some(phase.name.to_string());
             Some(phase)
@@ -75,13 +71,13 @@ impl RoadmapState {
     pub fn set_phase_dev(&mut self, phase_name: &str) {
         self.workflow = WORKFLOW_DEV.to_string();
         self.current_phase = Some(phase_name.to_string());
-        if let Some(phase) = self.phrases.iter_mut().find(|p| &p.name == phase_name) {
+        if let Some(phase) = self.phases.iter_mut().find(|p| &p.name == phase_name) {
             phase.status = PHASE_DEV.to_string();
         }
     }
 
     pub fn set_phase_finished(&mut self, phase_name: &str) {
-        if let Some(phase) = self.phrases.iter_mut().find(|p| &p.name == phase_name) {
+        if let Some(phase) = self.phases.iter_mut().find(|p| &p.name == phase_name) {
             phase.status = PHASE_FINISHED.to_string();
         }
     }
@@ -92,11 +88,11 @@ impl RoadmapState {
             None => "".to_string(),
         };
 
-        if let Ok(current_pos) = self.phrases
+        if let Ok(current_pos) = self.phases
             .iter()
             .position(|p| p.name == current_name)
-            .context("current_phase references missing phrase"){
-            self.phrases[current_pos].status == "init".to_string()
+            .context("current_phase references missing phase"){
+            self.phases[current_pos].status == "init".to_string()
         }else{
             true
         }
@@ -105,51 +101,51 @@ impl RoadmapState {
     /// Advances to the next phase in sequence.
     /// Marks the current phase as `finished`.
     /// Returns the new current phase, or None if already at the end.
-    pub fn advance_phase(&mut self) -> Result<Option<&Phrase>> {
+    pub fn advance_phase(&mut self) -> Result<Option<&Phase>> {
         let current_name = match self.current_phase.as_ref() {
             Some(n) => n.clone(),
             None => return Ok(None),
         };
 
-        let current_pos = self.phrases
+        let current_pos = self.phases
             .iter()
             .position(|p| p.name == current_name)
-            .context("current_phase references missing phrase")?;
+            .context("current_phase references missing phase")?;
 
         // Mark current as finished
-        self.phrases[current_pos].status = "finished".to_string();
+        self.phases[current_pos].status = "finished".to_string();
 
         // Advance to next
-        if current_pos + 1 < self.phrases.len() {
-            let next_name = self.phrases[current_pos + 1].name.clone();
+        if current_pos + 1 < self.phases.len() {
+            let next_name = self.phases[current_pos + 1].name.clone();
             self.current_phase = Some(next_name);
-            return Ok(self.phrases.get(current_pos + 1));
+            return Ok(self.phases.get(current_pos + 1));
         }
 
         self.current_phase = None;
         Ok(None)
     }
 
-    /// Returns true if all phrases have reached finished status.
+    /// Returns true if all phases have reached finished status.
     pub fn is_all_phases_complete(&self) -> bool {
-        self.phrases.iter().all(|p| p.status == "finished")
+        self.phases.iter().all(|p| p.status == "finished")
     }
 
-    /// Initializes phrases from a list of (name, file) pairs.
-    pub fn init_phrases_from_files(&mut self, files: Vec<(String, String)>) {
+    /// Initializes phases from a list of (name, file) pairs.
+    pub fn init_phases_from_files(&mut self, files: Vec<(String, String)>) {
         self.doc_ready = true;
         self.workflow = "ready".to_string();
-        self.phrases = files
+        self.phases = files
             .into_iter()
             .enumerate()
-            .map(|(_idx, (name, file))| Phrase {
+            .map(|(_idx, (name, file))| Phase {
                 name,
                 status: PHASE_INIT.to_string(),
                 file,
                 fixes: vec![],
             })
             .collect();
-        self.current_phase = self.phrases.first().map(|p| p.name.clone());
+        self.current_phase = self.phases.first().map(|p| p.name.clone());
     }
 
     pub fn validate(&self) -> Result<()> {
@@ -161,11 +157,11 @@ impl RoadmapState {
             );
         }
 
-        for phrase in &self.phrases {
-            if !PHASE_STATES.contains(&phrase.status.as_str()) {
+        for phase in &self.phases {
+            if !PHASE_STATES.contains(&phase.status.as_str()) {
                 anyhow::bail!(
-                    "Invalid phrase status: {}, expected one of: {:?}",
-                    phrase.status,
+                    "Invalid phase status: {}, expected one of: {:?}",
+                    phase.status,
                     PHASE_STATES
                 );
             }
@@ -298,7 +294,7 @@ mod tests {
         assert_eq!(state.version, "1.0.0");
         assert_eq!(state.workflow, "init");
         assert!(!state.doc_ready);
-        assert!(state.phrases.is_empty());
+        assert!(state.phases.is_empty());
     }
 
     #[test]
@@ -340,109 +336,109 @@ mod tests {
     }
 
     #[test]
-    fn test_phrase_status_transitions() {
+    fn test_phase_status_transitions() {
         let mut state = RoadmapState::new();
 
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "init".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         });
 
-        assert_eq!(state.phrases[0].status, "init");
+        assert_eq!(state.phases[0].status, "init");
 
         // init → dev
-        state.phrases[0].status = "dev".to_string();
-        assert_eq!(state.phrases[0].status, "dev");
+        state.phases[0].status = "dev".to_string();
+        assert_eq!(state.phases[0].status, "dev");
 
         // dev → finished
-        state.phrases[0].status = "finished".to_string();
-        assert_eq!(state.phrases[0].status, "finished");
+        state.phases[0].status = "finished".to_string();
+        assert_eq!(state.phases[0].status, "finished");
     }
 
     #[test]
-    fn test_phrase_issue_found_to_fixing_flow() {
+    fn test_phase_issue_found_to_fixing_flow() {
         let mut state = RoadmapState::new();
 
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "issue_found".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![Fix {
                 id: 0,
                 status: "done".to_string(),
-                plan_file: "@project_docs/fixes/phrase0_fix0.md".to_string(),
+                plan_file: "@project_docs/fixes/phase0_fix0.md".to_string(),
             }],
         });
 
         // issue_found → fixing (当所有 fixes 都是 done)
-        let all_done = state.phrases[0].fixes.iter().all(|f| f.status == "done");
+        let all_done = state.phases[0].fixes.iter().all(|f| f.status == "done");
         if all_done {
-            state.phrases[0].status = "fixing".to_string();
+            state.phases[0].status = "fixing".to_string();
         }
-        assert_eq!(state.phrases[0].status, "fixing");
+        assert_eq!(state.phases[0].status, "fixing");
     }
 
     #[test]
     fn test_fix_status_transitions() {
-        let mut phrase = Phrase {
-            name: "Phrase0".to_string(),
+        let mut phase = Phase {
+            name: "Phase0".to_string(),
             status: "issue_found".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         };
 
-        phrase.fixes.push(Fix {
+        phase.fixes.push(Fix {
             id: 0,
             status: "pending".to_string(),
-            plan_file: "@project_docs/fixes/phrase0_fix0.md".to_string(),
+            plan_file: "@project_docs/fixes/phase0_fix0.md".to_string(),
         });
 
         // pending → planned
-        phrase.fixes[0].status = "planned".to_string();
-        assert_eq!(phrase.fixes[0].status, "planned");
+        phase.fixes[0].status = "planned".to_string();
+        assert_eq!(phase.fixes[0].status, "planned");
 
         // planned → executing
-        phrase.fixes[0].status = "executing".to_string();
-        assert_eq!(phrase.fixes[0].status, "executing");
+        phase.fixes[0].status = "executing".to_string();
+        assert_eq!(phase.fixes[0].status, "executing");
 
         // executing → done
-        phrase.fixes[0].status = "done".to_string();
-        assert_eq!(phrase.fixes[0].status, "done");
+        phase.fixes[0].status = "done".to_string();
+        assert_eq!(phase.fixes[0].status, "done");
     }
 
     #[test]
     fn test_fix_failed_to_planned_flow() {
-        let mut phrase = Phrase {
-            name: "Phrase0".to_string(),
+        let mut phase = Phase {
+            name: "Phase0".to_string(),
             status: "issue_found".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         };
 
-        phrase.fixes.push(Fix {
+        phase.fixes.push(Fix {
             id: 0,
             status: "executing".to_string(),
-            plan_file: "@project_docs/fixes/phrase0_fix0.md".to_string(),
+            plan_file: "@project_docs/fixes/phase0_fix0.md".to_string(),
         });
 
         // 模拟验证失败
-        phrase.fixes[0].status = "failed".to_string();
-        assert_eq!(phrase.fixes[0].status, "failed");
+        phase.fixes[0].status = "failed".to_string();
+        assert_eq!(phase.fixes[0].status, "failed");
 
         // 重新 plan
-        phrase.fixes[0].status = "planned".to_string();
-        assert_eq!(phrase.fixes[0].status, "planned");
+        phase.fixes[0].status = "planned".to_string();
+        assert_eq!(phase.fixes[0].status, "planned");
     }
 
     #[test]
-    fn test_validate_rejects_invalid_phrase_status() {
+    fn test_validate_rejects_invalid_phase_status() {
         let mut state = RoadmapState::new();
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "invalid".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         });
         assert!(state.validate().is_err());
@@ -451,21 +447,21 @@ mod tests {
     #[test]
     fn test_validate_rejects_invalid_fix_status() {
         let mut state = RoadmapState::new();
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "issue_found".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![Fix {
                 id: 0,
                 status: "invalid".to_string(),
-                plan_file: "@project_docs/fixes/phrase0_fix0.md".to_string(),
+                plan_file: "@project_docs/fixes/phase0_fix0.md".to_string(),
             }],
         });
         assert!(state.validate().is_err());
     }
 
     #[test]
-    fn test_save_and_load_with_phrases() {
+    fn test_save_and_load_with_phases() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("roadmap.json");
         let store = RoadmapStore::new(path.to_str().unwrap());
@@ -473,11 +469,11 @@ mod tests {
         let mut state = RoadmapState::new();
         state.workflow = "dev".to_string();
         state.doc_ready = true;
-        state.current_phase = Some("Phrase0".to_string());
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.current_phase = Some("Phase0".to_string());
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "dev".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         });
 
@@ -486,10 +482,10 @@ mod tests {
         let loaded = store.load().unwrap();
         assert_eq!(loaded.workflow, "dev");
         assert!(loaded.doc_ready);
-        assert_eq!(loaded.current_phase, Some("Phrase0".to_string()));
-        assert_eq!(loaded.phrases.len(), 1);
-        assert_eq!(loaded.phrases[0].name, "Phrase0");
-        assert_eq!(loaded.phrases[0].status, "dev");
+        assert_eq!(loaded.current_phase, Some("Phase0".to_string()));
+        assert_eq!(loaded.phases.len(), 1);
+        assert_eq!(loaded.phases[0].name, "Phase0");
+        assert_eq!(loaded.phases[0].status, "dev");
     }
 
     #[test]
@@ -501,10 +497,10 @@ mod tests {
         // 设置一个复杂状态
         let mut state = RoadmapState::new();
         state.workflow = "dev".to_string();
-        state.phrases.push(Phrase {
-            name: "Phrase0".to_string(),
+        state.phases.push(Phase {
+            name: "Phase0".to_string(),
             status: "finished".to_string(),
-            file: "@project_docs/phrases/phrase0.md".to_string(),
+            file: "@project_docs/phases/phase0.md".to_string(),
             fixes: vec![],
         });
 
@@ -517,16 +513,16 @@ mod tests {
         let loaded = store.load().unwrap();
         assert_eq!(loaded.workflow, "init");
         assert!(!loaded.doc_ready);
-        assert!(loaded.phrases.is_empty());
+        assert!(loaded.phases.is_empty());
     }
 
     // ========== Integration Tests ==========
 
     #[test]
-    fn test_accept_initializes_phrases_correctly() {
+    fn test_accept_initializes_phases_correctly() {
         let mut state = RoadmapState::new();
 
-        state.init_phrases_from_files(vec![
+        state.init_phases_from_files(vec![
             ("PhaseA".to_string(), "@project_docs/phases/a.md".to_string()),
             ("PhaseB".to_string(), "@project_docs/phases/b.md".to_string()),
         ]);
@@ -534,54 +530,54 @@ mod tests {
         assert!(state.doc_ready);
         assert_eq!(state.workflow, "ready");
         assert_eq!(state.current_phase, Some("PhaseA".to_string()));
-        assert_eq!(state.phrases.len(), 2);
-        assert_eq!(state.phrases[0].name, "PhaseA");
-        assert_eq!(state.phrases[0].status, "init");
-        assert_eq!(state.phrases[1].name, "PhaseB");
-        assert_eq!(state.phrases[1].status, "init");
+        assert_eq!(state.phases.len(), 2);
+        assert_eq!(state.phases[0].name, "PhaseA");
+        assert_eq!(state.phases[0].status, "init");
+        assert_eq!(state.phases[1].name, "PhaseB");
+        assert_eq!(state.phases[1].status, "init");
     }
 
     #[test]
-    fn test_exec_sets_phrase_to_dev() {
+    fn test_exec_sets_phase_to_dev() {
         let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
-            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
-            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        state.init_phases_from_files(vec![
+            ("Phase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phase1".to_string(), "@project_docs/phases/1.md".to_string()),
         ]);
 
         // Simulate exec: find current phase and set status to "dev" if "init"
         let current_name = state.current_phase.clone().unwrap();
-        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+        if let Some(phase) = state.phases.iter_mut().find(|p| p.name == current_name) {
             if phase.status == "init" {
                 phase.status = "dev".to_string();
             }
         }
         state.workflow = "dev".to_string();
 
-        assert_eq!(state.phrases[0].status, "dev");
+        assert_eq!(state.phases[0].status, "dev");
         assert_eq!(state.workflow, "dev");
-        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
+        assert_eq!(state.current_phase, Some("Phase0".to_string()));
     }
 
     #[test]
     fn test_exec_skips_finished_phases() {
         let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
-            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
-            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        state.init_phases_from_files(vec![
+            ("Phase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phase1".to_string(), "@project_docs/phases/1.md".to_string()),
         ]);
 
         // Phase0 is finished
-        state.phrases[0].status = "finished".to_string();
-        state.current_phase = Some("Phrase1".to_string());
+        state.phases[0].status = "finished".to_string();
+        state.current_phase = Some("Phase1".to_string());
 
         // Simulate exec finding next non-finished phase
         let current_name = state.current_phase.clone().unwrap();
-        let phase = state.phrases.iter().find(|p| p.name == current_name);
+        let phase = state.phases.iter().find(|p| p.name == current_name);
         let (name, _) = match phase {
             Some(p) if p.status == "finished" => {
-                let idx = state.phrases.iter().position(|p| p.name == current_name).unwrap();
-                let next = state.phrases.get(idx + 1);
+                let idx = state.phases.iter().position(|p| p.name == current_name).unwrap();
+                let next = state.phases.get(idx + 1);
                 match next {
                     Some(np) => (np.name.clone(), np.file.clone()),
                     None => return, // no more phases
@@ -591,7 +587,7 @@ mod tests {
             None => return,
         };
 
-        assert_eq!(name, "Phrase1");
+        assert_eq!(name, "Phase1");
     }
 
     #[test]
@@ -601,27 +597,27 @@ mod tests {
         let store = RoadmapStore::new(path.to_str().unwrap());
 
         let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
-            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
-            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        state.init_phases_from_files(vec![
+            ("Phase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phase1".to_string(), "@project_docs/phases/1.md".to_string()),
         ]);
-        // Simulate exec: set first phrase to dev
-        state.phrases[0].status = "dev".to_string();
+        // Simulate exec: set first phase to dev
+        state.phases[0].status = "dev".to_string();
         state.workflow = "dev".to_string();
         store.save(&state).unwrap();
 
         // Confirm: advance_phase
         let next = state.advance_phase().unwrap();
-        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
-        assert_eq!(state.phrases[0].status, "finished"); // marked finished
-        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phase1"));
+        assert_eq!(state.phases[0].status, "finished"); // marked finished
+        assert_eq!(state.current_phase, Some("Phase1".to_string()));
         assert!(!state.is_all_phases_complete());
         store.save(&state).unwrap();
 
         // Reload and verify
         let loaded = store.load().unwrap();
-        assert_eq!(loaded.phrases[0].status, "finished");
-        assert_eq!(loaded.current_phase, Some("Phrase1".to_string()));
+        assert_eq!(loaded.phases[0].status, "finished");
+        assert_eq!(loaded.current_phase, Some("Phase1".to_string()));
     }
 
     #[test]
@@ -630,50 +626,50 @@ mod tests {
         let path = dir.path().join("roadmap.json");
         let store = RoadmapStore::new(path.to_str().unwrap());
 
-        // Step 1: accept - init phrases
+        // Step 1: accept - init phases
         let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
-            ("Phrase0".to_string(), "@project_docs/phases/0.md".to_string()),
-            ("Phrase1".to_string(), "@project_docs/phases/1.md".to_string()),
+        state.init_phases_from_files(vec![
+            ("Phase0".to_string(), "@project_docs/phases/0.md".to_string()),
+            ("Phase1".to_string(), "@project_docs/phases/1.md".to_string()),
         ]);
         assert_eq!(state.workflow, "ready");
-        assert_eq!(state.current_phase, Some("Phrase0".to_string()));
-        assert_eq!(state.phrases[0].status, "init");
+        assert_eq!(state.current_phase, Some("Phase0".to_string()));
+        assert_eq!(state.phases[0].status, "init");
         store.save(&state).unwrap();
 
-        // Step 2: exec - set phrase to dev
+        // Step 2: exec - set phase to dev
         let current_name = state.current_phase.clone().unwrap();
-        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+        if let Some(phase) = state.phases.iter_mut().find(|p| p.name == current_name) {
             if phase.status == "init" {
                 phase.status = "dev".to_string();
             }
         }
         state.workflow = "dev".to_string();
-        assert_eq!(state.phrases[0].status, "dev");
+        assert_eq!(state.phases[0].status, "dev");
         assert_eq!(state.workflow, "dev");
         store.save(&state).unwrap();
 
         // Step 3: confirm - advance to next phase
         let next = state.advance_phase().unwrap();
-        assert_eq!(next.map(|p| p.name.as_str()), Some("Phrase1"));
-        assert_eq!(state.phrases[0].status, "finished");
-        assert_eq!(state.current_phase, Some("Phrase1".to_string()));
+        assert_eq!(next.map(|p| p.name.as_str()), Some("Phase1"));
+        assert_eq!(state.phases[0].status, "finished");
+        assert_eq!(state.current_phase, Some("Phase1".to_string()));
         store.save(&state).unwrap();
 
-        // Step 4: exec on phrase1
+        // Step 4: exec on phase1
         let current_name = state.current_phase.clone().unwrap();
-        if let Some(phase) = state.phrases.iter_mut().find(|p| p.name == current_name) {
+        if let Some(phase) = state.phases.iter_mut().find(|p| p.name == current_name) {
             if phase.status == "init" {
                 phase.status = "dev".to_string();
             }
         }
-        assert_eq!(state.phrases[1].status, "dev");
+        assert_eq!(state.phases[1].status, "dev");
         store.save(&state).unwrap();
 
         // Step 5: confirm - last phase, returns None
         let next = state.advance_phase().unwrap();
         assert!(next.is_none());
-        assert_eq!(state.phrases[1].status, "finished");
+        assert_eq!(state.phases[1].status, "finished");
         assert_eq!(state.current_phase, None);
         assert!(state.is_all_phases_complete());
         store.save(&state).unwrap();
@@ -685,8 +681,8 @@ mod tests {
         // Verify final persistence
         let loaded = store.load().unwrap();
         assert_eq!(loaded.workflow, "archived");
-        assert_eq!(loaded.phrases[0].status, "finished");
-        assert_eq!(loaded.phrases[1].status, "finished");
+        assert_eq!(loaded.phases[0].status, "finished");
+        assert_eq!(loaded.phases[1].status, "finished");
         assert!(loaded.is_all_phases_complete());
     }
 
@@ -701,9 +697,9 @@ mod tests {
     }
 
     #[test]
-    fn test_current_phase_returns_correct_phrase() {
+    fn test_current_phase_returns_correct_phase() {
         let mut state = RoadmapState::new();
-        state.init_phrases_from_files(vec![
+        state.init_phases_from_files(vec![
             ("P0".to_string(), "f0".to_string()),
             ("P1".to_string(), "f1".to_string()),
         ]);

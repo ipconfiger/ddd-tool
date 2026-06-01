@@ -95,7 +95,7 @@ DDD 会输出一个 Prompt，指导 AI Agent 根据规格文档生成分阶段�
 /ddd-accept
 ```
 
-扫描 `project_docs/phases/` 目录，生成 phrases 数组，更新 `roadmap.json`。
+扫描 `project_docs/phases/` 目录，生成 phases 数组，更新 `roadmap.json`。
 
 **第五步：启动开发**
 
@@ -141,7 +141,7 @@ DDD 会读取当前 Phase 的开发计划文档，渲染开发指令，启动 AI
 | `ddd init <文档>`                       | 初始化项目，生成规格文档（specs）                        |
 | `ddd prepare`                         | 生成分阶段开发计划（phases）                          |
 | `ddd audit`                           | 对开发计划（phases）和规则进行交叉评审                     |
-| `ddd accept`                          | 扫描 phases 目录，生成 phrases 数组，更新 roadmap.json |
+| `ddd accept`                          | 扫描 phases 目录，生成 phases 数组，更新 roadmap.json |
 | `ddd exec`                            | 执行当前阶段的开发                                  |
 | `ddd verify`                          | 验证当前阶段是否符合 spec 要求                         |
 | `ddd confirm`                         | 确认当前阶段开发完成, 进入下一个阶段                        |
@@ -185,9 +185,9 @@ DDD 会读取当前 Phase 的开发计划文档，渲染开发指令，启动 AI
 └─────────────┘
 ```
 
-**阶段状态（per phrase）**
+**阶段状态（per phase）**
 
-每个阶段（phrase）独立演进：
+每个阶段（phase）独立演进：
 
 ```
 initialized → developing → verifying → fixing → ready

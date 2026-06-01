@@ -38,8 +38,8 @@ fn generate_report(state: &crate::state::RoadmapState) -> String {
     report.push_str("| 阶段 | 状态 | 文件 |\n");
     report.push_str("|------|------|------|\n");
 
-    for phrase in &state.phrases {
-        report.push_str(&format!("| {} | {} | {} |\n", phrase.name, phrase.status, phrase.file));
+    for phase in &state.phases {
+        report.push_str(&format!("| {} | {} | {} |\n", phase.name, phase.status, phase.file));
     }
 
     report.push_str("\n## 状态流转图\n\n");
@@ -53,8 +53,8 @@ fn generate_report(state: &crate::state::RoadmapState) -> String {
     report.push_str("\n```\n");
 
     // 缺陷统计
-    let total_fixes: usize = state.phrases.iter().map(|p| p.fixes.len()).sum();
-    let done_fixes: usize = state.phrases.iter()
+    let total_fixes: usize = state.phases.iter().map(|p| p.fixes.len()).sum();
+    let done_fixes: usize = state.phases.iter()
         .flat_map(|p| p.fixes.iter())
         .filter(|f| f.status == "done")
         .count();

@@ -5,8 +5,8 @@ use std::path::Path;
 
 const PUBLIC_COMMANDS: &[(&str, &str)] = &[
     ("init", "Initialize project with context"),
-    ("prepare", "Prepare phrases from specs"),
-    ("accept", "Accept development plan, init phrases"),
+    ("prepare", "Prepare phases from specs"),
+    ("accept", "Accept development plan, init phases"),
     ("exec", "Execute development phase"),
     ("verify", "Verify phase成果"),
     ("audit", "Audit specs and plans"),
@@ -225,32 +225,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 }
 
 
-fn backup_dir(dir: &Path, prefix: &str, extension: &str) -> Result<()> {
-    if !dir.exists() {
-        return Ok(());
-    }
-
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with(prefix) && name.ends_with(extension) {
-            let backup_path = entry.path().with_extension("bak");
-            fs::copy(entry.path(), backup_path)?;
-            println!("Backed up: {}", name);
-        }
-    }
+fn backup_dir(_dir: &Path, _prefix: &str, _extension: &str) -> Result<()> {
     Ok(())
 }
 
-fn backup_file(path: &Path) -> Result<()> {
-    if path.exists() {
-        let backup_path = path.with_extension(
-            path.extension()
-                .map(|e| format!("{}.bak", e.to_string_lossy()))
-                .unwrap_or_else(|| "bak".to_string()),
-        );
-        fs::copy(path, backup_path)?;
-        println!("Backed up: {}", path.file_name().unwrap().to_string_lossy());
-    }
+fn backup_file(_path: &Path) -> Result<()> {
     Ok(())
 }

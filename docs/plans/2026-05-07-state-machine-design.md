@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move all phrase-level state machine logic (get current phase, get next phase, advance to next phase) into `RoadmapState` methods, eliminating scattered logic in commands and fixing the borrow checker error in `confirm_phase.rs`.
+Move all phase-level state machine logic (get current phase, get next phase, advance to next phase) into `RoadmapState` methods, eliminating scattered logic in commands and fixing the borrow checker error in `confirm_phase.rs`.
 
 ## Problem
 
@@ -10,18 +10,18 @@ The current `confirm_phase.rs` has a borrow checker error:
 
 ```rust
 let current_phase = if let Some(name) = &state.current_phase {
-    state.phrases.iter_mut().find(|p| &p.name == name)  // first mutable borrow
+    state.phases.iter_mut().find(|p| &p.name == name)  // first mutable borrow
 } else {
     None
 };
 let next_phase = if let Some(current) = current_phase {
-    if let Some(this_pos) = state.phrases.iter_mut().position(|p| p.name == current.name) {  // second mutable borrow
-        state.phrases.get_mut(this_pos + 1usize)  // third mutable borrow
+    if let Some(this_pos) = state.phases.iter_mut().position(|p| p.name == current.name) {  // second mutable borrow
+        state.phases.get_mut(this_pos + 1usize)  // third mutable borrow
     } else { None }
 };
 ```
 
-Multiple simultaneous mutable borrows of `state.phrases` cause compile errors.
+Multiple simultaneous mutable borrows of `state.phases` cause compile errors.
 
 ## Design
 
@@ -30,33 +30,33 @@ Multiple simultaneous mutable borrows of `state.phrases` cause compile errors.
 ```rust
 impl RoadmapState {
     /// Returns the currently active phase, if one is set.
-    pub fn current_phase(&self) -> Option<&Phrase> {
+    pub fn current_phase(&self) -> Option<&Phase> {
         let name = self.current_phase.as_ref()?;
-        self.phrases.iter().find(|p| &p.name == name)
+        self.phases.iter().find(|p| &p.name == name)
     }
 
     /// Advances to the next phase in sequence.
     /// Marks the current phase as `STATE_READY`.
     /// Returns the new current phase, or None if already at the end.
-    pub fn advance_phase(&mut self) -> Result<Option<&Phrase>> {
+    pub fn advance_phase(&mut self) -> Result<Option<&Phase>> {
         let current_name = match self.current_phase.as_ref() {
             Some(n) => n.clone(),
             None => return Ok(None),
         };
 
-        let current_pos = self.phrases
+        let current_pos = self.phases
             .iter()
             .position(|p| p.name == current_name)
-            .context("current_phase references missing phrase")?;
+            .context("current_phase references missing phase")?;
 
         // Mark current as ready
-        self.phrases[current_pos].status = STATE_READY.to_string();
+        self.phases[current_pos].status = STATE_READY.to_string();
 
         // Advance to next
-        if current_pos + 1 < self.phrases.len() {
-            let next_name = self.phrases[current_pos + 1].name.clone();
+        if current_pos + 1 < self.phases.len() {
+            let next_name = self.phases[current_pos + 1].name.clone();
             self.current_phase = Some(next_name);
-            return Ok(self.phrases.get(current_pos + 1));
+            return Ok(self.phases.get(current_pos + 1));
         }
 
         self.current_phase = None;
@@ -64,24 +64,24 @@ impl RoadmapState {
     }
 
     pub fn is_all_phases_complete(&self) -> bool {
-        self.phrases.iter().all(|p| p.status == STATE_READY)
+        self.phases.iter().all(|p| p.status == STATE_READY)
     }
 
-    /// Initializes the phrases from a list of (name, file) pairs.
+    /// Initializes the phases from a list of (name, file) pairs.
     pub fn init_phases_from_files(&mut self, files: Vec<(String, String)>) {
         self.doc_ready = true;
         self.workflow = STATE_PREPARE.to_string();
-        self.phrases = files
+        self.phases = files
             .into_iter()
             .enumerate()
-            .map(|(idx, (name, file))| Phrase {
+            .map(|(idx, (name, file))| Phase {
                 name,
                 status: STATE_INIT.to_string(),
                 file,
                 fixes: vec![],
             })
             .collect();
-        self.current_phase = self.phrases.first().map(|p| p.name.clone());
+        self.current_phase = self.phases.first().map(|p| p.name.clone());
     }
 }
 ```
@@ -121,7 +121,7 @@ fn do_run() -> Result<()> {
 
 ### Updated `internal.rs`
 
-Replace direct phrase/field mutation with `state.init_phases_from_files(...)`.
+Replace direct phase/field mutation with `state.init_phases_from_files(...)`.
 
 ## Files to Change
 

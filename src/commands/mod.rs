@@ -3,8 +3,6 @@ use clap::{Parser, Subcommand};
 mod context;
 pub use context::DddContext;
 
-pub const DOCUMENT_STAGE: [&str; 3] = ["init", "doc_ready", "planing"];
-
 #[derive(Parser, Debug)]
 #[command(name = "ddd-tool")]
 #[command(version = "0.1.0")]
@@ -26,7 +24,7 @@ pub enum Command {
     Report(ReportCmd),
     Final(FinalCmd),
     Sync(SyncCmd),
-    /// 扫描 phrases 目录，生成 phrases 数组
+    /// 扫描 phases 目录，生成 phases 数组
     Accept,
     /// setup: 在项目级别配置命令和技能
     Setup(SetupCmd),

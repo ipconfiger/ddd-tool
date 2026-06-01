@@ -6,7 +6,7 @@
 
 - 基于 `roadmap.json` 声明式状态机的文档驱动开发框架
 - 封装核心流命令：`init`, `prepare`, `exec`, `verify`, `fix-plan`, `fix-exec`, `archive`, `report`, `sync`
-- 内部状态触发命令：`gen-phrase`, `set-issuse`, `finish-fix`, `finish-phrase`
+- 内部状态触发命令：`gen-phase`, `set-issuse`, `finish-fix`, `finish-phase`
 - 辅助工具命令：`setup`, `help`, `version`, `study`, `resume`
 
 ## 接受标准

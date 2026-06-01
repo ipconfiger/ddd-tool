@@ -36,7 +36,7 @@ fn do_run() -> Result<()> {
 
     let current_name = state.clone().current_phase.unwrap_or("".to_string());
 
-    let phase = state.phrases.iter_mut().find(|p| p.name == current_name);
+    let phase = state.phases.iter_mut().find(|p| p.name == current_name);
     let phase = match phase {
         Some(p) => p,
         None => {

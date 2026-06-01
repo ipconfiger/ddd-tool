@@ -1,7 +1,6 @@
 use crate::commands::{DddContext, ExecCmd};
 use crate::prompts::render;
 use anyhow::Result;
-use crate::state::roadmap::{PHASE_DEV, PHASE_INIT, WORKFLOW_DEV};
 
 const EXEC_PROMPT: &str = r#"根据开发计划文档 @{file} 开始{name}的开发, 从开发计划中提取对应的规格文档作为资料,
 开发必须遵守下面的原则:

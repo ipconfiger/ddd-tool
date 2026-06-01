@@ -4,7 +4,7 @@ pub struct PromptParams {
     pub context: Option<String>,
     pub file: Option<String>,
     pub anem: Option<String>,
-    pub phrase_name: Option<String>,
+    pub phase_name: Option<String>,
     pub plan_file: Option<String>,
     pub name: Option<String>,
 }
@@ -29,8 +29,8 @@ impl PromptParams {
         self
     }
 
-    pub fn with_phrase_name(mut self, name: String) -> Self {
-        self.phrase_name = Some(name);
+    pub fn with_phase_name(mut self, name: String) -> Self {
+        self.phase_name = Some(name);
         self
     }
 
@@ -60,8 +60,8 @@ pub fn render(template: &str, params: &PromptParams) -> String {
     if let Some(ref anem) = params.anem {
         result = result.replace("{anem}", anem);
     }
-    if let Some(ref phrase_name) = params.phrase_name {
-        result = result.replace("{Phrase Name}", phrase_name);
+    if let Some(ref phase_name) = params.phase_name {
+        result = result.replace("{Phase Name}", phase_name);
     }
     if let Some(ref plan_file) = params.plan_file {
         result = result.replace("{plan_file}", plan_file);
@@ -87,12 +87,12 @@ mod tests {
 
     #[test]
     fn test_render_all_placeholders() {
-        let template = "{context} {file} {anem} {Phrase Name} {plan_file} {name}";
+        let template = "{context} {file} {anem} {Phase Name} {plan_file} {name}";
         let params = PromptParams::new()
             .with_context("c".to_string())
             .with_file("f".to_string())
             .with_anem("a".to_string())
-            .with_phrase_name("pn".to_string())
+            .with_phase_name("pn".to_string())
             .with_plan_file("pf".to_string())
             .with_name("n".to_string());
         let result = render(template, &params);

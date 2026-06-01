@@ -43,12 +43,12 @@ fn do_run() -> Result<()> {
         return Ok(());
     }
 
-    // 清空 phrases 目录
-    let phrases_dir = ctx.project_root.join("project_docs").join("phrases");
-    if phrases_dir.exists() {
-        fs::remove_dir_all(&phrases_dir)?;
+    // 清空 phases 目录
+    let phases_dir = ctx.project_root.join("project_docs").join("phases");
+    if phases_dir.exists() {
+        fs::remove_dir_all(&phases_dir)?;
     }
-    fs::create_dir_all(&phrases_dir)?;
+    fs::create_dir_all(&phases_dir)?;
 
     // 渲染 Prompt
     let prompt = render(

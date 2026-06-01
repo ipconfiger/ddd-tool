@@ -13,13 +13,13 @@ fn extract_sort_key(filename: &OsStr) -> (Option<u32>, String) {
     (num, s.into_owned())
 }
 
-/// accept: 扫描 phrases 目录，生成 phrases 数组
+/// accept: 扫描 phases 目录，生成 phases 数组
 pub fn accept() -> Result<()> {
     let ctx = DddContext::new()?;
 
-    // 扫描 phrases 目录（排除 index.md）
-    let phrases_dir = ctx.project_root.join("project_docs").join("phases");
-    let mut phrase_files: Vec<_> = fs::read_dir(&phrases_dir)?
+    // 扫描 phases 目录（排除 index.md）
+    let phases_dir = ctx.project_root.join("project_docs").join("phases");
+    let mut phase_files: Vec<_> = fs::read_dir(&phases_dir)?
         .filter_map(|e| e.ok())
         .filter(|e| {
             let name = e.file_name();
@@ -27,10 +27,10 @@ pub fn accept() -> Result<()> {
         })
         .collect();
 
-    phrase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
+    phase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
 
-    // 构建 phrases 初始化数据
-    let files: Vec<_> = phrase_files
+    // 构建 phases 初始化数据
+    let files: Vec<_> = phase_files
         .iter()
         .enumerate()
         .map(|(idx, entry)| {
@@ -50,11 +50,11 @@ pub fn accept() -> Result<()> {
 
     // 更新状态
     let mut state = ctx.load_state()?;
-    state.init_phrases_from_files(files);
+    state.init_phases_from_files(files);
 
     ctx.save_state(&state)?;
 
-    println!("状态机已生成，共 {} 个阶段, 提示: 请执行 /ddd-exec 开始启动实际开发, 然后停止!", state.phrases.len());
+    println!("状态机已生成，共 {} 个阶段, 提示: 请执行 /ddd-exec 开始启动实际开发, 然后停止!", state.phases.len());
 
     Ok(())
 }

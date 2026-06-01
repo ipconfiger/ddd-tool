@@ -2,10 +2,10 @@
 
 ## 问题
 
-`gen-phrase` 命令扫描 `project_docs/phases` 目录时，使用字典序排序文件名：
+`gen-phase` 命令扫描 `project_docs/phases` 目录时，使用字典序排序文件名：
 
 ```rust
-phrase_files.sort_by_key(|e| e.file_name());
+phase_files.sort_by_key(|e| e.file_name());
 ```
 
 当 phase 数量超过 10 时，出现排序错误：`P10-file-upload.md` 排在 `P2-elder.md` 前面。
@@ -45,10 +45,10 @@ fn extract_sort_key(filename: &OsStr) -> (Option<u32>, &str) {
 
 ```rust
 // 之前
-phrase_files.sort_by_key(|e| e.file_name());
+phase_files.sort_by_key(|e| e.file_name());
 
 // 之后
-phrase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
+phase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
 ```
 
 ## 验证

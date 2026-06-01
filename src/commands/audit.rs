@@ -37,6 +37,7 @@ fn do_run() -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn render(specs_dir: &str) -> String {
     format!(
         r#"根据 {} 目录下的所有的规格文件, 和 @project_docs/phases/ 的开发计划作为资料,
