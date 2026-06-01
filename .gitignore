@@ -1,2 +1,7 @@
 target/
 .worktrees/
+.opencode/
+.claude/
+.idea/
+.omc/state/
+.omc/sessions/
