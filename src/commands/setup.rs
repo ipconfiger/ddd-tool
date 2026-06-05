@@ -88,7 +88,7 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path) -> Result<()> {
     //backup_dir(&commands_dir, "ddd-", ".md")?;
     //backup_file(skills_dir.join("SKILL.md").as_path())?;
     // Generate command files (10 files)
-    for (name, desc) in PUBLIC_COMMANDS {
+    for (name, _desc) in PUBLIC_COMMANDS {
         let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
         let content = to_string(&PromptTask{
             name: name.to_string(),
@@ -224,11 +224,3 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
     Ok(())
 }
 
-
-fn backup_dir(_dir: &Path, _prefix: &str, _extension: &str) -> Result<()> {
-    Ok(())
-}
-
-fn backup_file(_path: &Path) -> Result<()> {
-    Ok(())
-}

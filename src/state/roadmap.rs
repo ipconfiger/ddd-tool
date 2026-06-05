@@ -71,13 +71,13 @@ impl RoadmapState {
     pub fn set_phase_dev(&mut self, phase_name: &str) {
         self.workflow = WORKFLOW_DEV.to_string();
         self.current_phase = Some(phase_name.to_string());
-        if let Some(phase) = self.phases.iter_mut().find(|p| &p.name == phase_name) {
+        if let Some(phase) = self.phases.iter_mut().find(|p| p.name == phase_name) {
             phase.status = PHASE_DEV.to_string();
         }
     }
 
     pub fn set_phase_finished(&mut self, phase_name: &str) {
-        if let Some(phase) = self.phases.iter_mut().find(|p| &p.name == phase_name) {
+        if let Some(phase) = self.phases.iter_mut().find(|p| p.name == phase_name) {
             phase.status = PHASE_FINISHED.to_string();
         }
     }
@@ -92,7 +92,7 @@ impl RoadmapState {
             .iter()
             .position(|p| p.name == current_name)
             .context("current_phase references missing phase"){
-            self.phases[current_pos].status == "init".to_string()
+            self.phases[current_pos].status == "init"
         }else{
             true
         }
@@ -137,8 +137,7 @@ impl RoadmapState {
         self.workflow = "ready".to_string();
         self.phases = files
             .into_iter()
-            .enumerate()
-            .map(|(_idx, (name, file))| Phase {
+            .map(|(name, file)| Phase {
                 name,
                 status: PHASE_INIT.to_string(),
                 file,
@@ -189,6 +188,7 @@ impl FileLock {
             .read(true)
             .write(true)
             .create(true)
+            .truncate(true)
             .open(path)
             .context("Failed to open file for locking")?;
 

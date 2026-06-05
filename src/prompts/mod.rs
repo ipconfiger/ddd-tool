@@ -24,16 +24,19 @@ impl PromptParams {
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_anem(mut self, anem: String) -> Self {
         self.anem = Some(anem);
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_phase_name(mut self, name: String) -> Self {
         self.phase_name = Some(name);
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_plan_file(mut self, plan_file: String) -> Self {
         self.plan_file = Some(plan_file);
         self

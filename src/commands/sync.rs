@@ -26,11 +26,9 @@ fn do_run() -> Result<()> {
     let mut spec_files = Vec::new();
 
     if specs_path.exists() {
-        for entry in fs::read_dir(&specs_path)? {
-            if let Ok(entry) = entry {
-                if entry.path().extension().map(|e| e == "md").unwrap_or(false) {
-                    spec_files.push(entry.file_name().to_string_lossy().to_string());
-                }
+        for entry in fs::read_dir(&specs_path)?.filter_map(Result::ok) {
+            if entry.path().extension().map(|e| e == "md").unwrap_or(false) {
+                spec_files.push(entry.file_name().to_string_lossy().to_string());
             }
         }
     }
