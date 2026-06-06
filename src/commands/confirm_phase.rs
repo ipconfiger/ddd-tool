@@ -33,7 +33,7 @@ fn do_run() -> Result<()> {
             let next_name = next.name.clone();
             state.current_phase = Some(next_name.to_string());
             ctx.save_state(&state)?;
-            println!("提示用户: 接下来可以调用 /ddd-exec 开始实现 {}, 等待用户确认后才开始执行", next_name);
+            println!("开始实现 {}, 立即调用 `ddd-tool exec`", next_name);
         }
         None => {
             state.set_phase_finished(this_name.as_str());

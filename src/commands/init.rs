@@ -31,7 +31,7 @@ const INIT_PROMPT: &str = r#"分析需求:{context}, 按照规格设计原则:
 ---
 将规格设计的任务,委托的子代理独立生成.
 在每个模块的规格文件头部创建到SPEC_INDEX.md的双向 wiki-link 链接,将文档连接起来.
-所有文档存储到 @project_docs/specs/ 目录下. 完成后提醒调用 /ddd-prepare 生成开发计划"#;
+所有文档存储到 @project_docs/specs/ 目录下. 完成后立即调用 `ddd-tool prepare`"#;
 
 pub fn run(cmd: InitCmd) {
     if let Err(e) = do_run(cmd) {

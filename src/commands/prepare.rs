@@ -25,7 +25,7 @@ const PREPARE_PROMPT: &str = r#"根据 @project_docs/specs/ 下的spec, 按照�
 2. 该阶段结束需要验证的验证清单,
 将开发计划按照 {idx}_{name}.md 的命名规则, 存到 @project_docs/phases/ 下.
 **important** idx 从1开始.
-完成后提示调用 /ddd-accept 生成状态机."#;
+完成后立即调用 `ddd-tool audit`"#;
 
 pub fn run(_cmd: PrepareCmd) {
     if let Err(e) = do_run() {

@@ -9,7 +9,7 @@ const EXEC_PROMPT: &str = r#"根据开发计划文档 @{file} 开始{name}的开
 3. 禁止桩实现
 4. 必须先按照规则实现单元测试, 再实现业务逻辑
 将开发任务生成任务列表, 并将每个任务按照顺序委托给子代理串行执行.
-当开发完成后, 询问是否要执行: /ddd-verify 开始审核该阶段的成果, 或者 /ddd-confirm 直接继续下一阶段的开发."#;
+当开发完成后, 立即执行 `ddd-tool verify`"#;
 
 pub fn run(_cmd: ExecCmd) {
     if let Err(e) = do_run() {

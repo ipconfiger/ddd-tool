@@ -18,9 +18,7 @@ while:
   else
     break
 ```
-的逻辑执行, 当全部完成后
-提醒是否要执行 /ddd-confirm 确认完成本阶段开发
-"#;
+的逻辑执行, 当等待全部完成后,立即调用 `ddd-tool confirm`"#;
 
 pub fn run(_cmd: VerifyCmd) {
     if let Err(e) = do_run() {
