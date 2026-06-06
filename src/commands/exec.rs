@@ -1,54 +1,72 @@
-use crate::commands::{DddContext, ExecCmd};
-use crate::prompts::render;
+use crate::commands::DddContext;
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
-use crate::state::roadmap::{PHASE_DEV, PHASE_INIT, WORKFLOW_DEV};
 
-const EXEC_PROMPT: &str = r#"根据开发计划文档 @{file} 开始{name}的开发, 从开发计划中提取对应的规格文档作为资料,
+const EXEC_PROMPT: &str = r#"
+### 执行必须遵循的原则
+从开发计划中提取对应的规格文档作为资料,
 开发必须遵守下面的原则:
 1. 必须完整实现
 2. 禁止mock
 3. 禁止桩实现
 4. 必须先按照规则实现单元测试, 再实现业务逻辑
-将开发任务生成任务列表, 并将每个任务按照顺序委托给子代理串行执行.
-当开发完成后, 询问是否要执行: /ddd-verify 开始审核该阶段的成果, 或者 /ddd-confirm 直接继续下一阶段的开发."#;
+将开发任务生成任务列表, 并将每个任务按照依赖的关系委托给子代理执行."#;
 
-pub fn run(_cmd: ExecCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
+pub struct ExecCommand;
+
+impl DddCommand for ExecCommand {
+    fn name(&self) -> &'static str {
+        "ddd-exec"
     }
-}
 
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-
-    // 校验 doc_ready
-    let mut state = ctx.load_state()?;
-    if !state.doc_ready {
-        println!("请先完成文档准备阶段");
-        return Ok(());
+    fn description(&self) -> &'static str {
+        "Execute development phase"
     }
-    // 状态机推进逻辑：
-    // 1. 根据 current_phase 查找当前节点
-    // 2. 如果 current_phase 为空，取 phases[0]
-    // 3. 如果当前 phase.status == "finished"，取下一个 phase
-    // 4. 否则继续当前 phase
-    let mut new_state = state.clone();
-    if let Some(current_phase)  = state.fetch_current_phase() {
-        new_state.set_phase_dev(current_phase.name.as_str());
-        let prompt = render(
-            EXEC_PROMPT,
-            &crate::prompts::PromptParams::new()
-                .with_file(current_phase.file.clone())
-                .with_name(current_phase.name.clone()),
-        );
-        println!("{}", prompt);
-    } else {
-        if state.is_all_phases_complete() {
-            println!("全部阶段已经开发完成, 根据 @project_docs/specs/ 目录下的所有的规格文件 和 @project_docs/phases/ 的开发计划作为资料,结合当前实现的代码,进行交叉事实审核,高精度代码评审. 结束后询问是否执行 /ddd-achive 归档此轮开发");
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(EXEC_PROMPT)
+    }
+
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            "加载Skill {name}, 执行技能",
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "{name}"
+description: "执行当前阶段的开发任务"
+---
+调用 Bash !`{} {name} 2>&1` 获取当前执行阶段名称, 如果返回阶段名称,就:
+  {}
+  按当前阶段计划文档开始编码实现, 完成后调用 Skill ddd-verify;
+如果返回的"已经全部完成" 就调用 Skill ddd-final;
+如果返回"请先完成文档准备阶段",就停止执行,提示用户: 请先完成文档准备阶段
+"#,
+            bin,
+            EXEC_PROMPT
+        ))
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let mut state = ctx.load_state()?;
+        if !state.doc_ready {
+            return Ok(CommandResult::err("请先完成文档准备阶段".to_string()));
         }
-        return Ok(())
-    };
-    ctx.save_state(&new_state)?;
 
-    Ok(())
+        if let Some(current_phase) = state.fetch_current_phase() {
+            let _ = current_phase.status == "dev";
+            let phase_name = current_phase.name.to_string();
+            ctx.save_state(&state)?;
+            Ok(CommandResult::ok(phase_name))
+        } else if state.is_all_phases_complete() {
+            Ok(CommandResult::ok(
+                "已经全部完成".to_string()
+            ))
+        } else {
+            Ok(CommandResult::err("未找到当前阶段".to_string()))
+        }
+    }
 }

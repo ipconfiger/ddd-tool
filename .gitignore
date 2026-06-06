@@ -1,2 +1,8 @@
 target/
 .worktrees/
+.opencode/
+.claude/
+.idea/
+.omc/state/
+.omc/sessions/
+.omc/project-memory.json

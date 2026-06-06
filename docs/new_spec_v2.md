@@ -14,7 +14,7 @@
 | 类别 | 命令列表 | 封装方式 | 说明 |
 |:---|:---|:---|:---|
 | **核心流** | `init`, `prepare`, `exec`, `verify`, `fix-plan`, `fix-exec`, `archive`, `report`, `sync` | 封装为 `/ddd-xxx` Commands | 通过 `/` 触发，CLI 输出 Prompt 驱动 LLM 执行 |
-| **状态触发** | `gen-phrase`, `set-issuse`, `finish-fix`, `finish-phrase` | 内部调用，不封装 | 仅修改 `roadmap.json` 状态，由核心流通过 `!` 语法静默调用 |
+| **状态触发** | `gen-phase`, `set-issuse`, `finish-fix`, `finish-phase` | 内部调用，不封装 | 仅修改 `roadmap.json` 状态，由核心流通过 `!` 语法静默调用 |
 | **辅助工具** | `setup`, `help`, `version`, `study`, `resume` | 封装 | 环境初始化、帮助、版本、学习文档、断点恢复 |
 
 ## 🔄 状态机定义
@@ -27,16 +27,16 @@
   "workflow": "init",
   "current_phase": null,
   "doc_ready": false,
-  "phrases": [
+  "phases": [
     {
-      "name": "Phrase0",
+      "name": "Phase0",
       "status": "init",
-      "file": "@project_docs/phrases/phrase0.md",
+      "file": "@project_docs/phases/phase0.md",
       "fixes": [
         {
           "id": 0,
           "status": "pending",
-          "plan_file": "@project_docs/fixes/phrase0_fix0.md"
+          "plan_file": "@project_docs/fixes/phase0_fix0.md"
         }
       ]
     }
@@ -56,34 +56,34 @@
   调用 @Plan 分析需求 {context} 将需求拆分到模块后,单独为模块生成 .md 文件,然后按照 LLM Wiki的方式将拆分后模块的spec文件连接起来 , 所有文档存储到
   @project_docs/specs/ 下.
   ```
-- **状态落盘**：`workflow: "init"`, `current_phase: null`, `doc_ready: false`, `phrases: []`。
+- **状态落盘**：`workflow: "init"`, `current_phase: null`, `doc_ready: false`, `phases: []`。
 
 ### 🔹 `prepare`
 - **状态校验**：`workflow == "init"` 否则拦截。
-- **🔍 数据定位**：无需从 JSON 提取参数。CLI 清空 `@project_docs/phrases/` 目录后，读取 `@project_docs/specs/` 下的所有文件作为规划子代理的上下文输入。
-- **状态落盘**：生成完成后静默调用 `!ddd gen-phrase`。
+- **🔍 数据定位**：无需从 JSON 提取参数。CLI 清空 `@project_docs/phases/` 目录后，读取 `@project_docs/specs/` 下的所有文件作为规划子代理的上下文输入。
+- **状态落盘**：生成完成后静默调用 `!ddd gen-phase`。
 - **prompt 输出**：
 - ```
-  根据 @project_docs/specs/ 下的spec, 启动规划子代理, 规划开发阶段, 生成每个阶段的任务清单以及要引用的spec文件列表(index是一定每一个都要引用的).以及该阶段结束需要验证的验证清单, 将开发计划拆分成 index + 每阶段文档的形式, 方便根据阶段名称精确找到对应的文档, 所有生成文件存到 @project_docs/phrases/ 下.
-  完成后调用 !`ddd gen_phrase` 生成状态机.
+  根据 @project_docs/specs/ 下的spec, 启动规划子代理, 规划开发阶段, 生成每个阶段的任务清单以及要引用的spec文件列表(index是一定每一个都要引用的).以及该阶段结束需要验证的验证清单, 将开发计划拆分成 index + 每阶段文档的形式, 方便根据阶段名称精确找到对应的文档, 所有生成文件存到 @project_docs/phases/ 下.
+  完成后调用 !`ddd gen_phase` 生成状态机.
   ```
 
-### 🔹 `gen-phrase`（内部状态触发）
-- **🔍 数据定位/新建**：扫描 `@project_docs/phrases/` 目录（排除 `index.md`）。按文件名排序，为每个文件生成记录：
+### 🔹 `gen-phase`（内部状态触发）
+- **🔍 数据定位/新建**：扫描 `@project_docs/phases/` 目录（排除 `index.md`）。按文件名排序，为每个文件生成记录：
   ```json
-  { "name": "Phrase{idx}", "status": "init", "file": "@project_docs/phrases/phrase{idx}.md", "fixes": [] }
+  { "name": "Phase{idx}", "status": "init", "file": "@project_docs/phases/phase{idx}.md", "fixes": [] }
   ```
-  依次追加至 `phrases` 数组。
-- **状态落盘**：`doc_ready: true`, `workflow: "ready"`, `current_phase: phrases[0].name`。
+  依次追加至 `phases` 数组。
+- **状态落盘**：`doc_ready: true`, `workflow: "ready"`, `current_phase: phases[0].name`。
 - **Prompt 输出**：
 - ```
-  任务编排已经生成到 @project_docs/phrases/ 下, 请检查是否正确, 然后询问是否要执行 /ddd-exec 开始开发.
+  任务编排已经生成到 @project_docs/phases/ 下, 请检查是否正确, 然后询问是否要执行 /ddd-exec 开始开发.
   ```
 
 ### 🔹 `exec`
 - **状态校验**：`doc_ready == true` 否则输出：`"请先完成文档准备阶段"`。
 - **🔍 数据定位与新建**：
-  1. 若 `workflow == "dev"`，优先在 `phrases` 中查找 `status in ["dev", "issue_found", "fixing"]` 的记录（断点恢复）。
+  1. 若 `workflow == "dev"`，优先在 `phases` 中查找 `status in ["dev", "issue_found", "fixing"]` 的记录（断点恢复）。
   2. 若未找到，查找第一个 `status == "init"` 的记录。
   3. **提取参数**：`{file} ← phase.file`，`{anem} ← phase.name`（严格映射原 Prompt 占位符）。
 - **Prompt 输出**：
@@ -94,7 +94,7 @@
 - **状态落盘**：`phase.status: "dev"`, `workflow: "dev"`, `current_phase: phase.name`。
 
 ### 🔹 `verify`
-- **状态校验**：读取 `current_phase`，在 `phrases` 中定位对应记录。若 `status != "dev"`，输出：`"请先完成开发阶段"`。
+- **状态校验**：读取 `current_phase`，在 `phases` 中定位对应记录。若 `status != "dev"`，输出：`"请先完成开发阶段"`。
 - **🔍 数据定位**：`{file} ← phase.file`。
 - **Prompt 输出**：
   ```
@@ -102,10 +102,10 @@
   1. 对第一阶段开发进行代码审核.
   2. 运行所有单元测试
   3. 核对spec对代码进行深度事实审核
-  如果所有验证项目均没有issuse, 就执行 !`ddd finish_phrase` 然后 输出 “太开心啦, 通过啦!”.
+  如果所有验证项目均没有issuse, 就执行 !`ddd finish_phase` 然后 输出 “太开心啦, 通过啦!”.
   如果有issuse, 就执行 !`ddd set-issuse`.
   ```
-- **状态落盘**：CLI 不直接修改状态，由 LLM 返回的 `!ddd finish_phrase` 或 `!ddd set-issuse` 触发内部命令。
+- **状态落盘**：CLI 不直接修改状态，由 LLM 返回的 `!ddd finish_phase` 或 `!ddd set-issuse` 触发内部命令。
 
 ### 🔹 `set-issuse`（内部状态触发）
 - **🔍 数据定位**：通过 `current_phase` 定位 `phase` 对象。
@@ -115,12 +115,12 @@
 - **状态校验**：`phase.status == "issue_found"` 否则拦截。
 - **🔍 数据定位与新建**：
   1. 在 `phase.fixes` 中查找 `status != "done"` 的记录。
-  2. **新建逻辑**：若未找到，则追加新记录：`{ id: phase.fixes.length, status: "pending", plan_file: "@project_docs/fixes/phrase{idx}_fix{id}.md" }`。
-  3. 提取参数：`{Phrase Name} ← phase.name`，`{plan_file} ← fix.plan_file`。
+  2. **新建逻辑**：若未找到，则追加新记录：`{ id: phase.fixes.length, status: "pending", plan_file: "@project_docs/fixes/phase{idx}_fix{id}.md" }`。
+  3. 提取参数：`{Phase Name} ← phase.name`，`{plan_file} ← fix.plan_file`。
   4. 更新 `fix.status: "planned"` 后落盘。
 - **Prompt 输出**：
   ```
-  根据开发计划 @project_docs/phrases/{Phrase Name}.md 中提取对应的 spec 文档作为资料, 根据前面总结的问题, 调用 @Plan 生成fix的计划, 存到 @{plan_file}.
+  根据开发计划 @project_docs/phases/{Phase Name}.md 中提取对应的 spec 文档作为资料, 根据前面总结的问题, 调用 @Plan 生成fix的计划, 存到 @{plan_file}.
   接下来询问是否要 执行 /ddd-fix-exec 来执行修复计划. 或者手动修改 @{plan_file} 后, 执行 /ddd-fix-exec 来执行修复计划.
   ```
 
@@ -143,14 +143,14 @@
 - **🔍 数据定位**：通过 `current_phase` 定位 `phase`，在 `fixes` 中查找 `status == "executing"` 或最后一条记录。
 - **状态落盘**：`fix.status: "done"`。检查 `phase.fixes` 是否全部为 `"done"`，若是则 `phase.status: "fixing"`。输出：`"是否要执行 /ddd-exec 开始下一个阶段的开发"`。
 
-### 🔹 `finish-phrase`（内部状态触发）
+### 🔹 `finish-phase`（内部状态触发）
 - **🔍 数据定位**：通过 `current_phase` 定位 `phase`。
 - **状态落盘**：`phase.status: "finished"`。输出：`"是否要执行 /ddd-exec 开始下一个阶段的开发"`。
 
 ### 🔹 `archive`
-- **状态校验**：遍历 `phrases`，若存在 `status != "finished"`，输出：`"请先完成所有开发阶段"`。
+- **状态校验**：遍历 `phases`，若存在 `status != "finished"`，输出：`"请先完成所有开发阶段"`。
 - **🔍 数据定位/新建**：无需提取参数。CLI 计算 `@project_docs/archives/` 下的子目录数量作为 `idx`，生成目标路径 `@project_docs/archives/{YYYYMMDD}-{idx}/`。
-- **状态落盘**：移动文件后，覆写 `roadmap.json` 为初始模板：`workflow: "init"`, `current_phase: null`, `doc_ready: false`, `phrases: []`。
+- **状态落盘**：移动文件后，覆写 `roadmap.json` 为初始模板：`workflow: "init"`, `current_phase: null`, `doc_ready: false`, `phases: []`。
 
 ### 🔹 `report`
 - **Prompt 输出**：
@@ -172,7 +172,7 @@
   ```
 
 ### 🔹 `resume`（新增）
-- **🔍 数据定位**：扫描 `phrases` 查找 `status in ["dev", "issue_found", "fixing"]` 的阶段，或 `fixes` 中 `status == "executing"` 的记录。
+- **🔍 数据定位**：扫描 `phases` 查找 `status in ["dev", "issue_found", "fixing"]` 的阶段，或 `fixes` 中 `status == "executing"` 的记录。
 - **状态落盘**：恢复 `current_phase` 与 `workflow: "dev"`，输出当前断点上下文与下一步建议。
 - **Prompt 输出**：
 - ```
@@ -188,7 +188,7 @@
 init ──(prepare完成)──▶ ready ──(exec触发)──▶ dev ──(archive)──▶ archived
 ```
 
-### 阶段状态 (`phrases[].status`)
+### 阶段状态 (`phases[].status`)
 ```
 init ──(exec)──▶ dev ──(verify成功)──▶ finished
                       └─(verify失败)──▶ issue_found ──(fix闭环)──▶ fixing ──(verify通过)──▶ finished
@@ -202,7 +202,7 @@ pending ──(plan)──▶ planned ──(exec)──▶ executing ──(验
 
 ## 🛡️ 工程规范与最佳实践
 1. **路径统一**：所有相对路径强制使用 `@project_docs/` 别名前缀，CLI 内部通过项目根目录解析，杜绝散落路径。
-2. **数据注入规范**：CLI 在输出 Prompt 前，必须使用安全字符串替换（如 Rust `replace()` 或模板引擎）将 `{context}`, `{file}`, `{anem}`, `{Phrase Name}`, `{plan_file}` 替换为从 `roadmap.json` 提取的实际值。**严禁修改 Prompt 原文结构**。
+2. **数据注入规范**：CLI 在输出 Prompt 前，必须使用安全字符串替换（如 Rust `replace()` 或模板引擎）将 `{context}`, `{file}`, `{anem}`, `{Phase Name}`, `{plan_file}` 替换为从 `roadmap.json` 提取的实际值。**严禁修改 Prompt 原文结构**。
 3. **状态锁机制**：采用 `flock` 保护 `roadmap.json`，每次读写前执行 JSON Schema 校验，防止多 Agent 并发撕裂。
 4. **容错新建**：所有 `fixes` 数组操作必须遵循“先查后建”原则，`id` 自增，`plan_file` 路径严格绑定 `@project_docs/fixes/` 目录。
 5. **可观测性**：每次状态变更自动追加 `history` 数组（可选），记录 `timestamp`, `command`, `from_state`, `to_state`，为 `report` 提供数据源。

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"git rm -rf .history/ && git rm -rf .omc/sessions/ && git rm -rf .omc/state/agent-replay* && git rm -rf .omc/state/checkpoints/ && git commit -m \\\"$(cat <<'EOF'\\nchore: remove session histo...",
-  "error": "Exit code 128\nfatal: pathspec '.history/' did not match any files",
-  "timestamp": "2026-05-07T10:24:57.249Z",
-  "retry_count": 2
-}

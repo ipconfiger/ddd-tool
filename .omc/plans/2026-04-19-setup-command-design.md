@@ -12,7 +12,7 @@ The `setup` command initializes project-level command/skill registration for Cla
 | Command | Description |
 |---------|-------------|
 | `init` | Initialize project with context |
-| `prepare` | Prepare phrases from specs |
+| `prepare` | Prepare phases from specs |
 | `exec` | Execute development phase |
 | `verify` | Verify phase成果 |
 | `fix-plan` | Generate fix plan |
@@ -22,7 +22,7 @@ The `setup` command initializes project-level command/skill registration for Cla
 | `sync` | Sync code to docs |
 | `resume` | Resume interrupted workflow |
 
-**Note:** Internal commands (`gen-phrase`, `set-issue`, `finish-fix`, `finish-phrase`) are NOT registered as they are called via `!ddd` from prompts internally.
+**Note:** Internal commands (`gen-phase`, `set-issue`, `finish-fix`, `finish-phase`) are NOT registered as they are called via `!ddd` from prompts internally.
 
 ---
 
@@ -91,7 +91,7 @@ use std::path::Path;
 
 const PUBLIC_COMMANDS: &[(&str, &str)] = &[
     ("init", "Initialize project with context"),
-    ("prepare", "Prepare phrases from specs"),
+    ("prepare", "Prepare phases from specs"),
     ("exec", "Execute development phase"),
     ("verify", "Verify phase成果"),
     ("fix-plan", "Generate fix plan"),

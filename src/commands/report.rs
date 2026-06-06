@@ -1,29 +1,46 @@
-use crate::commands::{DddContext, ReportCmd};
+use crate::commands::DddContext;
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
-use std::fs;
 
-pub fn run(_cmd: ReportCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
+pub struct ReportCommand;
+
+impl DddCommand for ReportCommand {
+    fn name(&self) -> &'static str {
+        "ddd-report"
     }
-}
 
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-    let state = ctx.load_state()?;
+    fn description(&self) -> &'static str {
+        "Generate project report"
+    }
 
-    let report_path = ctx.project_root.join("project_docs").join("report.md");
+    fn prompt_template(&self) -> Option<&'static str> {
+        None
+    }
 
-    // 生成报告
-    let report = generate_report(&state);
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            "加载 Skill {name}, 执行技能",
+        ))
+    }
 
-    fs::write(&report_path, &report)?;
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "{name}"
+description: "生成项目开发进度报告"
+---
+调用 !`{} {name} 2>&1` 获取返回报告内容
+直接提示报告内容
+"#,
+            bin
+        ))
+    }
 
-    println!("📊 报告已生成: @project_docs/report.md");
-    println!();
-    println!("{}", report);
-
-    Ok(())
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let state = ctx.load_state()?;
+        let report = generate_report(&state);
+        Ok(CommandResult::ok(report))
+    }
 }
 
 fn generate_report(state: &crate::state::RoadmapState) -> String {
@@ -38,32 +55,9 @@ fn generate_report(state: &crate::state::RoadmapState) -> String {
     report.push_str("| 阶段 | 状态 | 文件 |\n");
     report.push_str("|------|------|------|\n");
 
-    for phrase in &state.phrases {
-        report.push_str(&format!("| {} | {} | {} |\n", phrase.name, phrase.status, phrase.file));
+    for phase in &state.phases {
+        report.push_str(&format!("| {} | {} | {} |\n", phase.name, phase.status, phase.file));
     }
-
-    report.push_str("\n## 状态流转图\n\n");
-    report.push_str("```\n");
-    report.push_str(&format!("workflow: {} → ", state.workflow));
-    if let Some(cp) = &state.current_phase {
-        report.push_str(&format!("current_phase: {}", cp));
-    } else {
-        report.push_str("current_phase: null");
-    }
-    report.push_str("\n```\n");
-
-    // 缺陷统计
-    let total_fixes: usize = state.phrases.iter().map(|p| p.fixes.len()).sum();
-    let done_fixes: usize = state.phrases.iter()
-        .flat_map(|p| p.fixes.iter())
-        .filter(|f| f.status == "done")
-        .count();
-
-    report.push_str("\n## 缺陷统计\n\n");
-    report.push_str(&format!("- 总修复任务: {}\n", total_fixes));
-    report.push_str(&format!("- 已完成: {}\n", done_fixes));
-    report.push_str(&format!("- 闭环率: {}%\n",
-        if total_fixes > 0 { done_fixes * 100 / total_fixes } else { 100 }));
 
     report.push_str("\n---\n\n*报告由 DocDriven CLI 自动生成*\n");
 

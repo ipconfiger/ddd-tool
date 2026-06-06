@@ -1,4 +1,5 @@
-use crate::commands::{DddContext, FinalCmd};
+use crate::commands::DddContext;
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
 
@@ -20,32 +21,58 @@ while:
   else
     break
 ```
-的逻辑执行, 当全部完成后
-提醒是否要执行 /ddd-confirm 确认本阶段开发, 进入下一个阶段
+的逻辑执行, 对所有已完成阶段进行最终交叉验证。检查各阶段之间的集成一致性、整体规格覆盖率。完成后输出最终验证报告。
 "#;
 
-pub fn run(_cmd: FinalCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
+pub struct FinalVerifyCommand;
 
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-    // 校验状态
-    let state = ctx.load_state()?;
-    if !state.is_all_phases_complete() {
-        println!("请先完成所有开发阶段, 停止执行!");
+impl DddCommand for FinalVerifyCommand {
+    fn name(&self) -> &'static str {
+        "ddd-final"
     }
-    // 渲染 Prompt
-    let prompt = render(
-        VERIFY_PROMPT,
-        &crate::prompts::PromptParams::new()
-            .with_name("all".to_string()),
-    );
-    println!("{}", prompt);
-    // 保存状态
-    //ctx.save_state(&state)?;
 
-    Ok(())
+    fn description(&self) -> &'static str {
+        "Finalize verify for all phases"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(VERIFY_PROMPT)
+    }
+
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            "加载 Skill {name}, 执行技能",
+        ))
+    }
+
+    fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "{name}"
+description: "对所有阶段进行最终交叉验证"
+---
+{},
+完成后询问是否要执行 /ddd-archive 归档本次开发任务
+"#,
+            VERIFY_PROMPT
+        ))
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        // 校验状态
+        let state = ctx.load_state()?;
+        if !state.is_all_phases_complete() {
+            return Ok(CommandResult::err("请先完成所有开发阶段, 停止执行!"));
+        }
+        // 渲染 Prompt
+        let prompt = render(
+            VERIFY_PROMPT,
+            &crate::prompts::PromptParams::new()
+                .with_name("all".to_string()),
+        );
+        let rendered = prompt.unwrap_or_else(|e| format!("渲染错误: {}", e));
+        // 保存状态 (KEEP THIS COMMENTED OUT as requested)
+        //ctx.save_state(&state)?;
+        Ok(CommandResult::ok_with_prompt(rendered.clone(), rendered))
+    }
 }
