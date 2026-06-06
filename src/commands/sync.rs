@@ -18,6 +18,26 @@ impl DddCommand for SyncCommand {
         None
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} sync。扫描 src/ 目录下的源代码和 specs/ 目录下的规格文档, 生成同步检查清单。用于确认代码与规格的一致性。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "sync"
+description: "同步检查代码与规格文档的一致性"
+---
+调用 !`{} sync 2>&1`
+扫描源代码和规格文档, 生成同步检查清单
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let sync_log_path = ctx.project_root.join("project_docs").join("sync_log.md");
 

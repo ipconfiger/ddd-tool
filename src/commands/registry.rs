@@ -84,6 +84,12 @@ mod tests {
         fn description(&self) -> &'static str {
             self.cmd_desc
         }
+        fn command_prompt(&self, _bin: &str) -> Option<String> {
+            Some("mock command".to_string())
+        }
+        fn skill_prompt(&self, _bin: &str) -> Option<String> {
+            Some("mock skill".to_string())
+        }
         fn execute(&self, _ctx: &crate::commands::DddContext, _args: &str) -> Result<CommandResult> {
             Ok(CommandResult::ok("mock"))
         }

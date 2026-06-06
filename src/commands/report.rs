@@ -18,6 +18,26 @@ impl DddCommand for ReportCommand {
         None
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} report。生成项目开发报告, 包含各阶段状态统计、修复记录、进度汇总。报告保存到 @project_docs/report.md。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "report"
+description: "生成项目开发进度报告"
+---
+调用 !`{} report 2>&1`
+生成包含阶段状态和修复统计的报告
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let state = ctx.load_state()?;
 

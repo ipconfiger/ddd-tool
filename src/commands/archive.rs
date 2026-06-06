@@ -22,6 +22,26 @@ impl DddCommand for ArchiveCommand {
         None
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} archive。归档已完成的项目。将规格文档和阶段计划打包为 tar.gz 存档到 @project_docs/archives/ 目录。归档后项目状态重置, 可开始新项目。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "archive"
+description: "归档已完成项目, 打包规格和阶段文档"
+---
+调用 !`{} archive 2>&1`
+打包归档项目文档到 archives/ 目录
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let state = ctx.load_state()?;
 

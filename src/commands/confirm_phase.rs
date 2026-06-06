@@ -17,6 +17,26 @@ impl DddCommand for ConfirmCommand {
         None
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} confirm。确认当前阶段开发成果, 推进状态到下一阶段。如果还有后续阶段, 立即调用 `ddd-tool exec` 开始下一阶段开发。如果全部完成, 调用 `ddd-tool final` 进行最终验证。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "confirm"
+description: "确认阶段完成并推进到下一阶段"
+---
+调用 !`{} confirm 2>&1`
+确认当前阶段完成, 推进到下一阶段
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let mut state = ctx.load_state()?;
 

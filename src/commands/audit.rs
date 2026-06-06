@@ -53,6 +53,26 @@ impl DddCommand for AuditCommand {
         Some(AUDIT_PROMPT)
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} audit。审核 @project_docs/specs/ 下所有规格文件的质量和一致性。检查规格是否完整、是否可执行、是否有矛盾。审核通过后等待用户确认阶段计划, 然后调用 `ddd-tool accept` 接受计划。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "audit"
+description: "审核规格文件的质量和一致性"
+---
+调用 !`{} audit 2>&1`
+审核 specs/ 下所有规格文件质量和一致性
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let specs_dir = ctx.project_root.join("project_docs").join("specs");
         if !specs_dir.exists() {

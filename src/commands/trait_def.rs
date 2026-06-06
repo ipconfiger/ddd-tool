@@ -51,27 +51,9 @@ pub trait DddCommand: Send + Sync {
     /// Execute the command
     fn execute(&self, ctx: &DddContext, args: &str) -> Result<CommandResult>;
 
-    /// Generate command prompt for Claude/OpenCode setup
-    fn command_prompt(&self, bin: &str) -> Option<String> {
-        let name = self.name();
-        Some(format!(
-            "使用 Bash工具 执行: {} {} $ARGUMENTS ,在命令执行完毕后，读取 stdout, 根据 stdout 制定下一步的执行任务，不要跳过或忽略任何输出信息",
-            bin, name
-        ))
-    }
+    /// Generate command prompt for Claude/OpenCode setup — each command defines its own
+    fn command_prompt(&self, bin: &str) -> Option<String>;
 
-    /// Generate skill prompt for OpenCode setup
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
-        let name = self.name();
-        let desc = self.description();
-        Some(format!(
-            r#"---
-name: "{}"
-description: "{}"
----
-调用 !`{} {} $ARGUMENTS 2>&1`
-"#,
-            name, desc, bin, name
-        ))
-    }
+    /// Generate skill prompt for OpenCode setup — each command defines its own
+    fn skill_prompt(&self, bin: &str) -> Option<String>;
 }

@@ -80,6 +80,26 @@ impl DddCommand for PrepareCommand {
         Some(PREPARE_PROMPT)
     }
 
+    fn command_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            "使用 Bash工具 执行: {} prepare。根据 @project_docs/specs/ 下的规格文件, 按照开发计划需求拆分为多个独立阶段。每个阶段写入 @project_docs/phases/ 目录。执行完毕后读取 stdout, 确认阶段计划已生成, 然后立即调用 `ddd-tool audit` 审核规格。",
+            bin
+        ))
+    }
+
+    fn skill_prompt(&self, bin: &str) -> Option<String> {
+        Some(format!(
+            r#"---
+name: "prepare"
+description: "根据规格文档拆分为多个独立开发阶段"
+---
+调用 !`{} prepare 2>&1`
+根据 specs/ 下的规格文件生成阶段计划到 phases/ 目录
+"#,
+            bin
+        ))
+    }
+
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let state = ctx.load_state()?;
         if state.workflow != "init" {
