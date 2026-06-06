@@ -1,8 +1,7 @@
-use crate::commands::{DddContext, PrepareCmd};
+use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
-use std::fs;
 
 const PREPARE_PROMPT: &str = r#"根据 @project_docs/specs/ 下的spec, 按照开发计划的需求:
 ### 必须
@@ -15,10 +14,10 @@ const PREPARE_PROMPT: &str = r#"根据 @project_docs/specs/ 下的spec, 按照�
 ### 建议
 1. **元数据前置**：在计划顶部集中声明阶段目标、架构约束及技术栈选型。
 2. **机读化表达**：配置、依赖、接口等结构化数据，优先使用 YAML/JSON 代码块或 Markdown 表格呈现。
-3. **指令数据隔离**：若用于喂给AI，必须将“生成规则（Prompt）”与“业务输入数据”物理分区块存放。
+3. **指令数据隔离**：若用于喂给AI，必须将"生成规则（Prompt）"与"业务输入数据"物理分区块存放。
 
 ### 禁止
-1. **禁止模糊动词**：任务描述中不允许出现“优化”“完善”“处理”等无法直接判定完成状态的词汇。
+1. **禁止模糊动词**：任务描述中不允许出现"优化""完善""处理"等无法直接判定完成状态的词汇。
 2. **禁止上下文缺失**：不允许在未声明架构与技术栈的情况下，直接输出孤立的任务列表。
 
 委托任务到子代理, 规划开发阶段, 串行按照顺序生成每个阶段的开发计划文件, 其中必须包含
@@ -27,43 +26,6 @@ const PREPARE_PROMPT: &str = r#"根据 @project_docs/specs/ 下的spec, 按照�
 将开发计划按照 {idx}_{name}.md 的命名规则, 存到 @project_docs/phases/ 下.
 **important** idx 从1开始.
 完成后立即调用 `ddd-tool audit`"#;
-
-pub fn run(_cmd: PrepareCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
-
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-
-    // 校验状态
-    let state = ctx.load_state()?;
-    if state.workflow != "init" {
-        println!("当前已进入开发阶段, 请先完成当前开发任务");
-        return Ok(());
-    }
-
-    // 清空 phases 目录
-    let phases_dir = ctx.project_root.join("project_docs").join("phases");
-    if phases_dir.exists() {
-        fs::remove_dir_all(&phases_dir)?;
-    }
-    fs::create_dir_all(&phases_dir)?;
-
-    // 渲染 Prompt
-    let prompt = render(
-        PREPARE_PROMPT,
-        &crate::prompts::PromptParams::new(),
-    );
-
-    println!("{}", prompt.unwrap_or_else(|e| format!("渲染错误: {}", e)));
-
-    // 保存状态
-    ctx.save_state(&state)?;
-
-    Ok(())
-}
 
 pub struct PrepareCommand;
 

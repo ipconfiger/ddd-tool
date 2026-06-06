@@ -1,4 +1,4 @@
-use crate::commands::{DddContext, FinalCmd};
+use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
@@ -77,30 +77,4 @@ description: "对所有阶段进行最终交叉验证"
         //ctx.save_state(&state)?;
         Ok(CommandResult::ok_with_prompt(rendered.clone(), rendered))
     }
-}
-
-pub fn run(_cmd: FinalCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
-
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-    // 校验状态
-    let state = ctx.load_state()?;
-    if !state.is_all_phases_complete() {
-        println!("请先完成所有开发阶段, 停止执行!");
-    }
-    // 渲染 Prompt
-    let prompt = render(
-        VERIFY_PROMPT,
-        &crate::prompts::PromptParams::new()
-            .with_name("all".to_string()),
-    );
-    println!("{}", prompt.unwrap_or_else(|e| format!("渲染错误: {}", e)));
-    // 保存状态
-    //ctx.save_state(&state)?;
-
-    Ok(())
 }

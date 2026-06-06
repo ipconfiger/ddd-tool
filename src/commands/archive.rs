@@ -1,4 +1,4 @@
-use crate::commands::{DddContext, ArchiveCmd};
+use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::{Context, Result};
 use flate2::write::GzEncoder;
@@ -101,75 +101,6 @@ description: "归档已完成项目, 打包规格和阶段文档"
         let msg = format!("✅ 项目已归档到: @project_docs/archives/{}/\n  - {}\nroadmap.json 已重置为初始状态。", archive_name, tar_gz_name);
         Ok(CommandResult::ok(msg))
     }
-}
-
-pub fn run(_cmd: ArchiveCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
-
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-    let state = ctx.load_state()?;
-
-    // 1. 校验所有 phases 已完成
-    let unfinished: Vec<_> = state.phases.iter()
-        .filter(|p| p.status != "finished")
-        .collect();
-    if !unfinished.is_empty() {
-        println!("请先完成所有开发阶段:");
-        for p in &unfinished {
-            println!("  - {} (状态: {})", p.name, p.status);
-        }
-        return Ok(());
-    }
-
-    // 2. 创建归档目录
-    let project_docs = ctx.project_root.join("project_docs");
-    let archives_dir = project_docs.join("archives");
-    fs::create_dir_all(&archives_dir)?;
-    let today = chrono::Local::now().format("%Y%m%d").to_string();
-    let idx = fs::read_dir(&archives_dir)?
-        .filter_map(|e| e.ok())
-        .filter(|e| e.path().is_dir())
-        .filter(|e| {
-            e.path().file_name()
-                .and_then(|n| n.to_str())
-                .map(|n| n.starts_with(&today))
-                .unwrap_or(false)
-        })
-        .count();
-    let archive_name = format!("{}-{}", today, idx);
-    let archive_path = archives_dir.join(&archive_name);
-    fs::create_dir_all(&archive_path)?;
-
-    // 3. gzip 归档 specs 与 phases 到单一 tar.gz
-    let tar_gz_name = format!("archive-{}.tar.gz", archive_name);
-    let tar_gz_path = archive_path.join(&tar_gz_name);
-    let sources: Vec<(&str, std::path::PathBuf)> = vec![
-        ("specs", project_docs.join("specs")),
-        ("phases", project_docs.join("phases")),
-    ];
-    archive_dirs(&sources, &tar_gz_path)
-        .with_context(|| format!("归档失败: {}", tar_gz_path.display()))?;
-
-    // 4. 清空 specs/ 与 phases/
-    for (_name, src) in &sources {
-        if src.exists() {
-            fs::remove_dir_all(src)?;
-        }
-        fs::create_dir_all(src)?;
-    }
-
-    // 5. 重置 roadmap.json
-    let initial_state = crate::state::RoadmapState::new();
-    ctx.save_state(&initial_state)?;
-
-    println!("✅ 项目已归档到: @project_docs/archives/{}/", archive_name);
-    println!("  - {}", tar_gz_name);
-    println!("roadmap.json 已重置为初始状态。");
-    Ok(())
 }
 
 /// 将多个源目录打包为单个 .tar.gz；每个源在归档内以其第一个元素作为目录前缀。

@@ -1,4 +1,4 @@
-use crate::commands::{DddContext, VerifyCmd};
+use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
@@ -20,45 +20,6 @@ while:
     break
 ```
 的逻辑执行, 当等待全部完成后,立即调用 `ddd-tool confirm`"#;
-
-pub fn run(_cmd: VerifyCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
-
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-
-    // 校验状态
-    let mut state = ctx.load_state()?;
-
-    let current_name = state.clone().current_phase.unwrap_or("".to_string());
-
-    let phase = state.phases.iter_mut().find(|p| p.name == current_name);
-    let phase = match phase {
-        Some(p) => p,
-        None => {
-            println!("请先完成开发阶段: {}, 停止执行等待用户介入", current_name);
-            return Ok(());
-        }
-    };
-    // 更新状态为 verifying
-    phase.status = "verifying".to_string();
-
-    // 渲染 Prompt
-    let prompt = render(
-        VERIFY_PROMPT,
-        &crate::prompts::PromptParams::new()
-            .with_file(phase.file.clone()).with_name(current_name.clone()),
-    );
-
-    println!("{}", prompt.unwrap_or_else(|e| format!("渲染错误: {}", e)));
-    // 保存状态
-    ctx.save_state(&state.clone())?;
-
-    Ok(())
-}
 
 pub struct VerifyCommand;
 

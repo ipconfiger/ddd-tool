@@ -1,4 +1,4 @@
-use crate::commands::{DddContext, ReportCmd};
+use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
 use std::fs;
@@ -50,30 +50,6 @@ description: "生成项目开发进度报告"
         let msg = format!("📊 报告已生成: @project_docs/report.md\n\n{}", report);
         Ok(CommandResult::ok(msg))
     }
-}
-
-pub fn run(_cmd: ReportCmd) {
-    if let Err(e) = do_run() {
-        eprintln!("错误: {}", e);
-    }
-}
-
-fn do_run() -> Result<()> {
-    let ctx = DddContext::new()?;
-    let state = ctx.load_state()?;
-
-    let report_path = ctx.project_root.join("project_docs").join("report.md");
-
-    // 生成报告
-    let report = generate_report(&state);
-
-    fs::write(&report_path, &report)?;
-
-    println!("📊 报告已生成: @project_docs/report.md");
-    println!();
-    println!("{}", report);
-
-    Ok(())
 }
 
 fn generate_report(state: &crate::state::RoadmapState) -> String {
