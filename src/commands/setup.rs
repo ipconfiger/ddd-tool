@@ -112,9 +112,11 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path) -> Result<()> {
 
 fn setup_opencode(ddd_binary: &Path, project_root: &Path) -> Result<()> {
     let commands_dir = project_root.join(".opencode/commands");
+    let skills_dir = project_root.join(".opencode/skills");
 
     // Create directories
     fs::create_dir_all(&commands_dir)?;
+    fs::create_dir_all(&skills_dir)?;
     prepare_init_file(project_root, "AGENTS")?;
 
     // Backup existing command files
@@ -123,6 +125,7 @@ fn setup_opencode(ddd_binary: &Path, project_root: &Path) -> Result<()> {
     // Generate command files (10 files)
     for (name, desc) in PUBLIC_COMMANDS {
         let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
+        let skill_file = skills_dir.join(format!("ddd-{}.md", name));
         let content = format!(
             r#"---
 description: {}
@@ -136,10 +139,18 @@ agent: Sisyphus
             name
         );
         fs::write(&cmd_file, content)?;
+        let skill_content = format!(r#"---
+name: "{}"
+description: "{}"
+---
+调用 !`{} {} $ARGUMENTS 2>&1`
+"#, name, desc, ddd_binary.to_string_lossy(), name);
+        fs::write(&skill_file, skill_content)?;
     }
 
     println!("OpenCode setup complete!");
     println!("  Commands: .opencode/commands/ddd-*.md ({} files)", PUBLIC_COMMANDS.len());
+    println!("  Skills: .opencode/skills/ddd-*.md ({} files)", PUBLIC_COMMANDS.len());
     println!("Restart OpenCode to use /ddd-<command> syntax");
 
     Ok(())
