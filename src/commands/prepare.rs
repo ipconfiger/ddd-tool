@@ -56,7 +56,7 @@ fn do_run() -> Result<()> {
         &crate::prompts::PromptParams::new(),
     );
 
-    println!("{}", prompt);
+    println!("{}", prompt.unwrap_or_else(|e| format!("渲染错误: {}", e)));
 
     // 保存状态
     ctx.save_state(&state)?;

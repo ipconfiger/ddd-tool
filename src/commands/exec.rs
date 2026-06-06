@@ -40,7 +40,7 @@ fn do_run() -> Result<()> {
                 .with_file(current_phase.file.clone())
                 .with_name(current_phase.name.clone()),
         );
-        println!("{}", prompt);
+        println!("{}", prompt.unwrap_or_else(|e| format!("渲染错误: {}", e)));
     } else {
         if state.is_all_phases_complete() {
             println!("全部阶段已经开发完成, 根据 @project_docs/specs/ 目录下的所有的规格文件 和 @project_docs/phases/ 的开发计划作为资料,结合当前实现的代码,进行交叉事实审核,高精度代码评审. 结束后询问是否执行 /ddd-achive 归档此轮开发");
