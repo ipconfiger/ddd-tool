@@ -70,7 +70,7 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegist
             .command_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();
 
-        let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
+        let cmd_file = commands_dir.join(format!("{}.md", name));
         let content = to_string(&PromptTask {
             name: name.to_string(),
             task_type: "ai".to_string(),
@@ -87,9 +87,24 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegist
         fs::write(&cmd_file, content)?;
     }
 
+    // Generate skill files
+    let skills_dir = claude_dir.join("skills");
+    fs::create_dir_all(&skills_dir)?;
+
+    for cmd in &commands {
+        if let Some(content) = cmd.skill_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name()) {
+            let skill_file = skills_dir.join(format!("{}.md", cmd.name()));
+            fs::write(&skill_file, &content)?;
+        }
+    }
+
     println!("Claude Code setup complete!");
     println!(
-        "  Commands: .claude/commands/ddd-*.md ({} files)",
+        "  Commands: .claude/commands/*.md ({} files)",
+        commands.len()
+    );
+    println!(
+        "  Skills: .claude/skills/*.md ({} files)",
         commands.len()
     );
     println!("Restart Claude Code to use /ddd-<command> syntax");
@@ -113,23 +128,23 @@ fn setup_opencode(
         let desc = cmd.description();
 
         // Command file
-        let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
+        let cmd_file = commands_dir.join(format!("{}.md", name));
         let cmd_content = format!(
             r#"---
 description: {}
 agent: Sisyphus
 ---
 
-!`{} {} $ARGUMENTS 2>&1`
+{}
 "#,
             desc,
-            ddd_binary.to_string_lossy(),
-            name
+            cmd.command_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
+                .unwrap_or_default()
         );
         fs::write(&cmd_file, cmd_content)?;
 
         // Skill file
-        let skill_file = skills_dir.join(format!("ddd-{}.md", name));
+        let skill_file = skills_dir.join(format!("{}.md", name));
         let skill_content = cmd
             .skill_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();
