@@ -3,6 +3,11 @@ use clap::{Parser, Subcommand};
 mod context;
 pub use context::DddContext;
 
+pub mod trait_def;
+pub mod registry;
+pub use trait_def::{DddCommand, CommandResult};
+pub use registry::CommandRegistry;
+
 #[derive(Parser, Debug)]
 #[command(name = "ddd-tool")]
 #[command(version = "0.1.0")]
