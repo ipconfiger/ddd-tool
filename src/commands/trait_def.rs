@@ -48,6 +48,11 @@ pub trait DddCommand: Send + Sync {
         None
     }
 
+    /// Whether this command should be visible in the CLI
+    /// Commands returning false still generate Skills/Commands via setup,
+    /// but won't appear as user-facing CLI subcommands
+    fn is_cli_visible(&self) -> bool { true }
+
     /// Execute the command
     fn execute(&self, ctx: &DddContext, args: &str) -> Result<CommandResult>;
 

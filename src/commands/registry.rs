@@ -56,6 +56,14 @@ impl CommandRegistry {
         self.commands.values().map(|c| c.as_ref()).collect()
     }
 
+    /// Get only CLI-visible commands (for help display and CLI dispatch)
+    pub fn cli_visible_commands(&self) -> Vec<&dyn DddCommand> {
+        self.commands.values()
+            .filter(|c| c.is_cli_visible())
+            .map(|c| c.as_ref())
+            .collect()
+    }
+
     pub fn names(&self) -> Vec<&'static str> {
         self.commands.keys().copied().collect()
     }

@@ -127,6 +127,10 @@ fn dispatch(cmd: Command) {
 fn dispatch_command(registry: &CommandRegistry, name: &str, ctx: &DddContext, args: &str) {
     match registry.get(name) {
         Some(cmd) => {
+            if !cmd.is_cli_visible() {
+                eprintln!("错误: 命令 '{}' 不可直接调用", name);
+                return;
+            }
             match cmd.execute(ctx, args) {
                 Ok(result) => {
                     if result.success {
