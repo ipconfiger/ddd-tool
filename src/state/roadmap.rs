@@ -7,9 +7,11 @@ use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 
+#[allow(dead_code)]
 pub const WORKFLOW_DEV: &str = "dev";
 
 pub const PHASE_INIT: &str = "init";
+#[allow(dead_code)]
 pub const PHASE_DEV: &str = "dev";
 pub const PHASE_FINISHED: &str = "finished";
 
@@ -68,6 +70,7 @@ impl RoadmapState {
         }
     }
 
+    #[allow(dead_code)]
     pub fn set_phase_dev(&mut self, phase_name: &str) {
         self.workflow = WORKFLOW_DEV.to_string();
         self.current_phase = Some(phase_name.to_string());

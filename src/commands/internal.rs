@@ -8,7 +8,7 @@ pub struct AcceptCommand;
 
 impl DddCommand for AcceptCommand {
     fn name(&self) -> &'static str {
-        "accept"
+        "ddd-accept"
     }
 
     fn description(&self) -> &'static str {
@@ -19,10 +19,9 @@ impl DddCommand for AcceptCommand {
         None
     }
 
-    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} {name}。扫描 @project_docs/phases/ 目录, 接受阶段计划并初始化状态。完成后立即调用 `ddd-tool exec` 开始第一个阶段的开发。",
-            bin
+            "加载Skill {name}, 执行技能生成开发任务批次, 完成后提示用户可以执行 /ddd-exec 开始进行开发"
         ))
     }
 
@@ -32,8 +31,8 @@ impl DddCommand for AcceptCommand {
 name: "{name}"
 description: "接受阶段计划并初始化开发状态"
 ---
-调用 !`{} {name} 2>&1`
 扫描 phases/ 目录并初始化开发阶段
+调用Bash !`{} accept 2>&1`
 "#,
             bin
         ))
@@ -72,8 +71,7 @@ description: "接受阶段计划并初始化开发状态"
         state.init_phases_from_files(files);
 
         ctx.save_state(&state)?;
-
-        Ok(CommandResult::ok(format!("状态机已生成，共 {} 个阶段, 提示: 请执行 /ddd-exec 开始启动实际开发, 然后停止!", state.phases.len())))
+        Ok(CommandResult::ok(format!("状态机已生成，共 {} 个阶段", state.phases.len())))
     }
 }
 

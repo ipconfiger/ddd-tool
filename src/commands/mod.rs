@@ -5,7 +5,7 @@ pub use context::DddContext;
 
 pub mod trait_def;
 pub mod registry;
-pub use trait_def::{DddCommand, CommandResult};
+pub use trait_def::DddCommand;
 pub use registry::CommandRegistry;
 
 #[derive(Parser, Debug)]
@@ -125,7 +125,8 @@ fn dispatch(cmd: Command) {
 }
 
 fn dispatch_command(registry: &CommandRegistry, name: &str, ctx: &DddContext, args: &str) {
-    match registry.get(name) {
+    let lookup_key = format!("ddd-{name}");
+    match registry.get(&lookup_key) {
         Some(cmd) => {
             if !cmd.is_cli_visible() {
                 eprintln!("错误: 命令 '{}' 不可直接调用", name);

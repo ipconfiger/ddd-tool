@@ -21,15 +21,14 @@ while:
   else
     break
 ```
-的逻辑执行, 当全部完成后
-提醒是否要执行 /ddd-confirm 确认本阶段开发, 进入下一个阶段
+的逻辑执行, 对所有已完成阶段进行最终交叉验证。检查各阶段之间的集成一致性、整体规格覆盖率。完成后输出最终验证报告。
 "#;
 
 pub struct FinalVerifyCommand;
 
 impl DddCommand for FinalVerifyCommand {
     fn name(&self) -> &'static str {
-        "final"
+        "ddd-final"
     }
 
     fn description(&self) -> &'static str {
@@ -40,23 +39,22 @@ impl DddCommand for FinalVerifyCommand {
         Some(VERIFY_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} {name}。对所有已完成阶段进行最终交叉验证。检查各阶段之间的集成一致性、整体规格覆盖率。完成后输出最终验证报告。",
-            bin
+            "加载 Skill {name}, 执行技能",
         ))
     }
 
-    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
 name: "{name}"
 description: "对所有阶段进行最终交叉验证"
 ---
-调用 !`{} {name} 2>&1`
-对全部阶段进行最终集成验证
+{},
+完成后询问是否要执行 /ddd-archive 归档本次开发任务
 "#,
-            bin
+            VERIFY_PROMPT
         ))
     }
 

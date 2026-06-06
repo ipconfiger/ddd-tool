@@ -1,13 +1,12 @@
 use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
-use std::fs;
 
 pub struct ReportCommand;
 
 impl DddCommand for ReportCommand {
     fn name(&self) -> &'static str {
-        "report"
+        "ddd-report"
     }
 
     fn description(&self) -> &'static str {
@@ -18,10 +17,9 @@ impl DddCommand for ReportCommand {
         None
     }
 
-    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} {name}。生成项目开发报告, 包含各阶段状态统计、修复记录、进度汇总。报告保存到 @project_docs/report.md。",
-            bin
+            "加载 Skill {name}, 执行技能",
         ))
     }
 
@@ -31,8 +29,8 @@ impl DddCommand for ReportCommand {
 name: "{name}"
 description: "生成项目开发进度报告"
 ---
-调用 !`{} {name} 2>&1`
-生成包含阶段状态和修复统计的报告
+调用 !`{} {name} 2>&1` 获取返回报告内容
+直接提示报告内容
 "#,
             bin
         ))
@@ -40,15 +38,8 @@ description: "生成项目开发进度报告"
 
     fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
         let state = ctx.load_state()?;
-
-        let report_path = ctx.project_root.join("project_docs").join("report.md");
-
         let report = generate_report(&state);
-
-        fs::write(&report_path, &report)?;
-
-        let msg = format!("📊 报告已生成: @project_docs/report.md\n\n{}", report);
-        Ok(CommandResult::ok(msg))
+        Ok(CommandResult::ok(report))
     }
 }
 
@@ -67,29 +58,6 @@ fn generate_report(state: &crate::state::RoadmapState) -> String {
     for phase in &state.phases {
         report.push_str(&format!("| {} | {} | {} |\n", phase.name, phase.status, phase.file));
     }
-
-    report.push_str("\n## 状态流转图\n\n");
-    report.push_str("```\n");
-    report.push_str(&format!("workflow: {} → ", state.workflow));
-    if let Some(cp) = &state.current_phase {
-        report.push_str(&format!("current_phase: {}", cp));
-    } else {
-        report.push_str("current_phase: null");
-    }
-    report.push_str("\n```\n");
-
-    // 缺陷统计
-    let total_fixes: usize = state.phases.iter().map(|p| p.fixes.len()).sum();
-    let done_fixes: usize = state.phases.iter()
-        .flat_map(|p| p.fixes.iter())
-        .filter(|f| f.status == "done")
-        .count();
-
-    report.push_str("\n## 缺陷统计\n\n");
-    report.push_str(&format!("- 总修复任务: {}\n", total_fixes));
-    report.push_str(&format!("- 已完成: {}\n", done_fixes));
-    report.push_str(&format!("- 闭环率: {}%\n",
-        if total_fixes > 0 { done_fixes * 100 / total_fixes } else { 100 }));
 
     report.push_str("\n---\n\n*报告由 DocDriven CLI 自动生成*\n");
 

@@ -1,10 +1,8 @@
 use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
-use crate::prompts::render;
 use anyhow::Result;
-use std::fs;
 
-const INIT_PROMPT: &str = r#"分析需求:{context}, 按照规格设计原则:
+const INIT_PROMPT: &str = r#"按照规格设计原则:
 按照MVP设计原则与KISS原则, 实现最小化可执行的原则, 如无必要不要增加实体.
 ### 必须
 1. **分层定界**：总章明确定义 In/Out-of-Scope 与量化成功指标；子模块独立描述自身职责。
@@ -32,13 +30,13 @@ const INIT_PROMPT: &str = r#"分析需求:{context}, 按照规格设计原则:
 ---
 将规格设计的任务,委托的子代理独立生成.
 在每个模块的规格文件头部创建到SPEC_INDEX.md的双向 wiki-link 链接,将文档连接起来.
-所有文档存储到 @project_docs/specs/ 目录下. 完成后立即调用 `ddd-tool prepare`"#;
+所有文档存储到 ../../project_docs/specs/ 目录下."#;
 
 pub struct InitCommand;
 
 impl DddCommand for InitCommand {
     fn name(&self) -> &'static str {
-        "init"
+        "ddd-init"
     }
 
     fn description(&self) -> &'static str {
@@ -51,7 +49,7 @@ impl DddCommand for InitCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 {name} skill 参数 $ARGUMENTS。初始化项目规格文档。"
+            "加载 {name} skill, 根据需求: $ARGUMENTS。初始化项目规格文档."
         ))
     }
 
@@ -61,37 +59,40 @@ impl DddCommand for InitCommand {
 name: "{name}"
 description: "分析需求文档, 按照规格设计原则创建项目规格文件"
 ---
+执行Bash `mkdir -p ../../project_docs/specs/`;
 {}
+加载 Skill ddd-prepare, 执行完成后调用 ddd-prepare
 "#,
             INIT_PROMPT
         ))
     }
 
-    fn execute(&self, ctx: &DddContext, args: &str) -> Result<CommandResult> {
-        let state = ctx.load_state()?;
-        if state.workflow != "init" {
-            return Ok(CommandResult::err("当前已进入开发阶段, 请先完成当前开发任务".to_string()));
-        }
-
-        let context_value = if args.is_empty() {
-            "未提供需求文档".to_string()
-        } else {
-            let resolved = ctx.resolve_path(args);
-            if resolved.exists() {
-                fs::read_to_string(&resolved).unwrap_or_else(|_| args.to_string())
-            } else {
-                args.to_string()
-            }
-        };
-
-        let prompt = render(
-            INIT_PROMPT,
-            &crate::prompts::PromptParams::new().with_context(context_value),
-        ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
-
-        Ok(CommandResult::ok_with_prompt(
-            "初始化 prompt 已生成".to_string(),
-            prompt,
-        ))
+    fn execute(&self, _ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        // let state = ctx.load_state()?;
+        // if state.workflow != "init" {
+        //     return Ok(CommandResult::err("当前已进入开发阶段, 请先完成当前开发任务".to_string()));
+        // }
+        //
+        // let context_value = if args.is_empty() {
+        //     "未提供需求文档".to_string()
+        // } else {
+        //     let resolved = ctx.resolve_path(args);
+        //     if resolved.exists() {
+        //         fs::read_to_string(&resolved).unwrap_or_else(|_| args.to_string())
+        //     } else {
+        //         args.to_string()
+        //     }
+        // };
+        //
+        // let prompt = render(
+        //     INIT_PROMPT,
+        //     &crate::prompts::PromptParams::new().with_context(context_value),
+        // ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
+        //
+        // Ok(CommandResult::ok_with_prompt(
+        //     "初始化 prompt 已生成".to_string(),
+        //     prompt,
+        // ))
+        Ok(CommandResult::ok(""))
     }
 }

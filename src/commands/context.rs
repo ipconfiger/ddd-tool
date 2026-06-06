@@ -42,6 +42,7 @@ impl DddContext {
         self.store.save(state)
     }
 
+    #[allow(dead_code)]
     pub fn resolve_path(&self, path: &str) -> PathBuf {
         let path = path.trim_start_matches("@project_docs/");
         self.project_root.join("project_docs").join(path)

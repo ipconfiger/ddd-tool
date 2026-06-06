@@ -13,11 +13,13 @@ impl PromptParams {
         Self::default()
     }
 
+    #[allow(dead_code)]
     pub fn with_context(mut self, context: String) -> Self {
         self.context = Some(context);
         self
     }
 
+    #[allow(dead_code)]
     pub fn with_file(mut self, file: String) -> Self {
         self.file = Some(file);
         self

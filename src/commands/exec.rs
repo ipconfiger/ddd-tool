@@ -1,22 +1,22 @@
 use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
-use crate::prompts::render;
 use anyhow::Result;
 
-const EXEC_PROMPT: &str = r#"根据开发计划文档 @{file} 开始{name}的开发, 从开发计划中提取对应的规格文档作为资料,
+const EXEC_PROMPT: &str = r#"
+### 执行必须遵循的原则
+从开发计划中提取对应的规格文档作为资料,
 开发必须遵守下面的原则:
 1. 必须完整实现
 2. 禁止mock
 3. 禁止桩实现
 4. 必须先按照规则实现单元测试, 再实现业务逻辑
-将开发任务生成任务列表, 并将每个任务按照顺序委托给子代理串行执行.
-当开发完成后, 立即执行 `ddd-tool verify`"#;
+将开发任务生成任务列表, 并将每个任务按照依赖的关系委托给子代理执行."#;
 
 pub struct ExecCommand;
 
 impl DddCommand for ExecCommand {
     fn name(&self) -> &'static str {
-        "exec"
+        "ddd-exec"
     }
 
     fn description(&self) -> &'static str {
@@ -27,10 +27,9 @@ impl DddCommand for ExecCommand {
         Some(EXEC_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} {name}。根据当前开发阶段的计划文档开始编码实现。严格按照计划文档执行, 完成后立即调用 `ddd-tool verify` 验证成果。",
-            bin
+            "加载Skill {name}, 执行技能",
         ))
     }
 
@@ -40,10 +39,14 @@ impl DddCommand for ExecCommand {
 name: "{name}"
 description: "执行当前阶段的开发任务"
 ---
-调用 !`{} {name} 2>&1`
-按当前阶段计划文档开始编码实现
+调用 Bash !`{} {name} 2>&1` 获取当前执行阶段名称, 如果返回阶段名称,就:
+  {}
+  按当前阶段计划文档开始编码实现, 完成后调用 Skill ddd-verify;
+如果返回的"已经全部完成" 就调用 Skill ddd-final;
+如果返回"请先完成文档准备阶段",就停止执行,提示用户: 请先完成文档准备阶段
 "#,
-            bin
+            bin,
+            EXEC_PROMPT
         ))
     }
 
@@ -54,20 +57,13 @@ description: "执行当前阶段的开发任务"
         }
 
         if let Some(current_phase) = state.fetch_current_phase() {
-            let prompt = render(
-                EXEC_PROMPT,
-                &crate::prompts::PromptParams::new()
-                    .with_file(current_phase.file.clone())
-                    .with_name(current_phase.name.clone()),
-            ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
-
-            Ok(CommandResult::ok_with_prompt(
-                format!("开始阶段: {}", current_phase.name),
-                prompt,
-            ))
+            let _ = current_phase.status == "dev";
+            let phase_name = current_phase.name.to_string();
+            ctx.save_state(&state)?;
+            Ok(CommandResult::ok(phase_name))
         } else if state.is_all_phases_complete() {
             Ok(CommandResult::ok(
-                "全部阶段已经开发完成, 根据 @project_docs/specs/ 目录下的所有的规格文件 和 @project_docs/phases/ 的开发计划作为资料,结合当前实现的代码,进行交叉事实审核,高精度代码评审. 结束后询问是否执行 /ddd-achive 归档此轮开发".to_string()
+                "已经全部完成".to_string()
             ))
         } else {
             Ok(CommandResult::err("未找到当前阶段".to_string()))

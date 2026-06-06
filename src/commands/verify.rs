@@ -1,10 +1,9 @@
 use crate::commands::DddContext;
 use crate::commands::trait_def::{DddCommand, CommandResult};
-use crate::prompts::render;
 use anyhow::Result;
 
-const VERIFY_PROMPT: &str = r#"根据开发计划: @{file} ,并从开发计划中提取对应的规格文档作为资料,然后
-1. 对 {name} 的成果代码进行代码审核.
+const VERIFY_PROMPT: &str = r#"根据本阶段开发计划文档, 并从开发计划中提取对应的规格文档作为资料,然后
+1. 对当前阶段的成果代码进行代码审核.
 2. 运行所有单元测试
 3. 核对spec对代码进行深度事实审核
 4. 保证所有功能均已经完整实现, 没有任何占位符实现, 桩实现, 禁止任何的mock
@@ -19,13 +18,13 @@ while:
   else
     break
 ```
-的逻辑执行, 当等待全部完成后,立即调用 `ddd-tool confirm`"#;
+的逻辑执行"#;
 
 pub struct VerifyCommand;
 
 impl DddCommand for VerifyCommand {
     fn name(&self) -> &'static str {
-        "verify"
+        "ddd-verify"
     }
 
     fn description(&self) -> &'static str {
@@ -36,10 +35,9 @@ impl DddCommand for VerifyCommand {
         Some(VERIFY_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
+    fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} {name}。验证当前阶段开发成果是否符合规格要求。检查代码质量、测试覆盖、文档完整性。根据验证结果决定是否通过, 通过后立即调用 `ddd-tool confirm` 推进到下一阶段。",
-            bin
+            "加载Skill {name}, 执行技能"
         ))
     }
 
@@ -49,10 +47,14 @@ impl DddCommand for VerifyCommand {
 name: "{name}"
 description: "验证当前阶段开发成果是否符合规格要求"
 ---
-调用 !`{} {name} 2>&1`
-验证当前阶段代码质量和规格符合度
+调用 Base !`{} {name} 2>&1` 从返回里获得当前阶段名称,
+如果返回的阶段名称:
+  根据:{} 验证当前阶段代码质量和规格符合度
+  如果执行完毕通过审核, 就 加载 Skill ddd-confirm 并执行;
+如果返回"请先完成开发阶段..."就停止,等待用户介入,并提示: 请先完成开发阶段"阶段名称"
 "#,
-            bin
+            bin,
+            VERIFY_PROMPT
         ))
     }
 
@@ -74,18 +76,10 @@ description: "验证当前阶段开发成果是否符合规格要求"
 
         phase.status = "verifying".to_string();
 
-        let prompt = render(
-            VERIFY_PROMPT,
-            &crate::prompts::PromptParams::new()
-                .with_file(phase.file.clone())
-                .with_name(current_name.clone()),
-        ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
-
         ctx.save_state(&state)?;
 
-        Ok(CommandResult::ok_with_prompt(
-            format!("验证阶段: {}", current_name),
-            prompt,
+        Ok(CommandResult::ok(
+            format!("{}", current_name),
         ))
     }
 }

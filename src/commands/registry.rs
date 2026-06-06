@@ -57,6 +57,7 @@ impl CommandRegistry {
     }
 
     /// Get only CLI-visible commands (for help display and CLI dispatch)
+    #[allow(dead_code)]
     pub fn cli_visible_commands(&self) -> Vec<&dyn DddCommand> {
         self.commands.values()
             .filter(|c| c.is_cli_visible())
@@ -64,6 +65,7 @@ impl CommandRegistry {
             .collect()
     }
 
+    #[allow(dead_code)]
     pub fn names(&self) -> Vec<&'static str> {
         self.commands.keys().copied().collect()
     }

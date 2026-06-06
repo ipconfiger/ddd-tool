@@ -44,6 +44,7 @@ pub trait DddCommand: Send + Sync {
     fn description(&self) -> &'static str;
 
     /// Prompt template if this command generates one (None for operational commands)
+    #[allow(dead_code)]
     fn prompt_template(&self) -> Option<&'static str> {
         None
     }
