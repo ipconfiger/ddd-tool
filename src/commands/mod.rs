@@ -93,19 +93,61 @@ pub fn run() {
 }
 
 fn dispatch(cmd: Command) {
+    let ctx = match DddContext::new() {
+        Ok(ctx) => ctx,
+        Err(e) => {
+            eprintln!("错误: {}", e);
+            return;
+        }
+    };
+
+    let registry = CommandRegistry::new();
+
     match cmd {
-        Command::Init(c) => init::run(c),
-        Command::Prepare(c) => prepare::run(c),
-        Command::Exec(c) => exec::run(c),
-        Command::Verify(c) => verify::run(c),
-        Command::Audit(c) => audit::run(c),
-        Command::Confirm(c) => confirm_phase::run(c),
-        Command::Archive(c) => archive::run(c),
-        Command::Report(c) => report::run(c),
-        Command::Final(c) => final_verify::run(c),
-        Command::Sync(c) => sync::run(c),
-        Command::Accept => { let _ = internal::accept(); },
+        Command::Init(c) => {
+            let args = c.context.unwrap_or_default();
+            dispatch_command(&registry, "init", &ctx, &args);
+        }
+        Command::Prepare(_) => dispatch_command(&registry, "prepare", &ctx, ""),
+        Command::Exec(_) => dispatch_command(&registry, "exec", &ctx, ""),
+        Command::Verify(_) => dispatch_command(&registry, "verify", &ctx, ""),
+        Command::Audit(_) => dispatch_command(&registry, "audit", &ctx, ""),
+        Command::Confirm(_) => dispatch_command(&registry, "confirm", &ctx, ""),
+        Command::Archive(_) => dispatch_command(&registry, "archive", &ctx, ""),
+        Command::Report(_) => dispatch_command(&registry, "report", &ctx, ""),
+        Command::Final(_) => dispatch_command(&registry, "final", &ctx, ""),
+        Command::Sync(_) => dispatch_command(&registry, "sync", &ctx, ""),
+        Command::Accept => {
+            let _ = internal::accept();
+        }
         Command::Setup(c) => setup::run(c),
+    }
+}
+
+fn dispatch_command(registry: &CommandRegistry, name: &str, ctx: &DddContext, args: &str) {
+    match registry.get(name) {
+        Some(cmd) => {
+            match cmd.execute(ctx, args) {
+                Ok(result) => {
+                    if result.success {
+                        if let Some(ref prompt) = result.prompt {
+                            println!("{}", prompt);
+                        }
+                        if !result.message.is_empty() && result.prompt.is_none() {
+                            println!("{}", result.message);
+                        }
+                    } else {
+                        eprintln!("错误: {}", result.message);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("错误: {}", e);
+                }
+            }
+        }
+        None => {
+            eprintln!("未知命令: {}", name);
+        }
     }
 }
 

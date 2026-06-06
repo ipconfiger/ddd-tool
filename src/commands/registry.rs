@@ -1,5 +1,16 @@
 use std::collections::HashMap;
 use super::trait_def::DddCommand;
+use super::init::InitCommand;
+use super::prepare::PrepareCommand;
+use super::exec::ExecCommand;
+use super::verify::VerifyCommand;
+use super::audit::AuditCommand;
+use super::final_verify::FinalVerifyCommand;
+use super::confirm_phase::ConfirmCommand;
+use super::archive::ArchiveCommand;
+use super::report::ReportCommand;
+use super::sync::SyncCommand;
+use super::internal::AcceptCommand;
 
 pub struct CommandRegistry {
     commands: HashMap<&'static str, Box<dyn DddCommand>>,
@@ -13,6 +24,25 @@ impl Default for CommandRegistry {
 
 impl CommandRegistry {
     pub fn new() -> Self {
+        let mut reg = Self {
+            commands: HashMap::new(),
+        };
+        reg.register(Box::new(InitCommand));
+        reg.register(Box::new(PrepareCommand));
+        reg.register(Box::new(ExecCommand));
+        reg.register(Box::new(VerifyCommand));
+        reg.register(Box::new(AuditCommand));
+        reg.register(Box::new(FinalVerifyCommand));
+        reg.register(Box::new(ConfirmCommand));
+        reg.register(Box::new(ArchiveCommand));
+        reg.register(Box::new(ReportCommand));
+        reg.register(Box::new(SyncCommand));
+        reg.register(Box::new(AcceptCommand));
+        reg
+    }
+
+    #[cfg(test)]
+    fn empty() -> Self {
         Self {
             commands: HashMap::new(),
         }
@@ -61,7 +91,7 @@ mod tests {
 
     #[test]
     fn new_registry_is_empty() {
-        let reg = CommandRegistry::new();
+        let reg = CommandRegistry::empty();
         assert!(reg.all().is_empty());
         assert!(reg.names().is_empty());
         assert!(reg.get("anything").is_none());
@@ -69,7 +99,7 @@ mod tests {
 
     #[test]
     fn register_and_get_command() {
-        let mut reg = CommandRegistry::new();
+        let mut reg = CommandRegistry::empty();
         reg.register(Box::new(MockCommand {
             cmd_name: "test-cmd",
             cmd_desc: "A test command",
@@ -82,7 +112,7 @@ mod tests {
 
     #[test]
     fn all_returns_all_registered() {
-        let mut reg = CommandRegistry::new();
+        let mut reg = CommandRegistry::empty();
         reg.register(Box::new(MockCommand {
             cmd_name: "cmd-a",
             cmd_desc: "Command A",
@@ -101,7 +131,7 @@ mod tests {
 
     #[test]
     fn names_returns_all_keys() {
-        let mut reg = CommandRegistry::new();
+        let mut reg = CommandRegistry::empty();
         reg.register(Box::new(MockCommand {
             cmd_name: "alpha",
             cmd_desc: "Alpha",
@@ -118,7 +148,7 @@ mod tests {
 
     #[test]
     fn get_unknown_returns_none() {
-        let mut reg = CommandRegistry::new();
+        let mut reg = CommandRegistry::empty();
         reg.register(Box::new(MockCommand {
             cmd_name: "known",
             cmd_desc: "Known",
