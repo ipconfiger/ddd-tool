@@ -120,7 +120,7 @@ fn dispatch(cmd: Command) {
         Command::Accept => {
             let _ = internal::accept();
         }
-        Command::Setup(c) => setup::run(c),
+        Command::Setup(c) => setup::run(c, &registry),
     }
 }
 
