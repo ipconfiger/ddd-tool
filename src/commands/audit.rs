@@ -11,7 +11,7 @@ const AUDIT_PROMPT: &str = r#"根据 @project_docs/specs/ 目录下的所有的�
 5. 是否有违反设计原则的实现
 将评审的任务委托给子代理执行.
 当评审完成后, 如果有问题, 就按照优先级,委托给子代理串行执行修复.
-全部完成后提醒用户是否要执行 /ddd-accept 批准设计
+全部完成后立即执行 `ddd-tool accept` 批准设计
 "#;
 
 pub fn run(_cmd: crate::commands::AuditCmd) {
