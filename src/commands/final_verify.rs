@@ -40,20 +40,20 @@ impl DddCommand for FinalVerifyCommand {
         Some(VERIFY_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} final。对所有已完成阶段进行最终交叉验证。检查各阶段之间的集成一致性、整体规格覆盖率。完成后输出最终验证报告。",
+            "使用 Bash工具 执行: {} {name}。对所有已完成阶段进行最终交叉验证。检查各阶段之间的集成一致性、整体规格覆盖率。完成后输出最终验证报告。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "final"
+name: "{name}"
 description: "对所有阶段进行最终交叉验证"
 ---
-调用 !`{} final 2>&1`
+调用 !`{} {name} 2>&1`
 对全部阶段进行最终集成验证
 "#,
             bin

@@ -18,20 +18,20 @@ impl DddCommand for SyncCommand {
         None
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} sync。扫描 src/ 目录下的源代码和 specs/ 目录下的规格文档, 生成同步检查清单。用于确认代码与规格的一致性。",
+            "使用 Bash工具 执行: {} {name}。扫描 src/ 目录下的源代码和 specs/ 目录下的规格文档, 生成同步检查清单。用于确认代码与规格的一致性。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "sync"
+name: "{name}"
 description: "同步检查代码与规格文档的一致性"
 ---
-调用 !`{} sync 2>&1`
+调用 !`{} {name} 2>&1`
 扫描源代码和规格文档, 生成同步检查清单
 "#,
             bin

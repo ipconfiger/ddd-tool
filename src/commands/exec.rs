@@ -68,20 +68,20 @@ impl DddCommand for ExecCommand {
         Some(EXEC_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} exec。根据当前开发阶段的计划文档开始编码实现。严格按照计划文档执行, 完成后立即调用 `ddd-tool verify` 验证成果。",
+            "使用 Bash工具 执行: {} {name}。根据当前开发阶段的计划文档开始编码实现。严格按照计划文档执行, 完成后立即调用 `ddd-tool verify` 验证成果。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "exec"
+name: "{name}"
 description: "执行当前阶段的开发任务"
 ---
-调用 !`{} exec 2>&1`
+调用 !`{} {name} 2>&1`
 按当前阶段计划文档开始编码实现
 "#,
             bin

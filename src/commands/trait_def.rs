@@ -57,8 +57,8 @@ pub trait DddCommand: Send + Sync {
     fn execute(&self, ctx: &DddContext, args: &str) -> Result<CommandResult>;
 
     /// Generate command prompt for Claude/OpenCode setup — each command defines its own
-    fn command_prompt(&self, bin: &str) -> Option<String>;
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String>;
 
     /// Generate skill prompt for OpenCode setup — each command defines its own
-    fn skill_prompt(&self, bin: &str) -> Option<String>;
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String>;
 }

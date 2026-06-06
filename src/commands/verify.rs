@@ -75,20 +75,20 @@ impl DddCommand for VerifyCommand {
         Some(VERIFY_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} verify。验证当前阶段开发成果是否符合规格要求。检查代码质量、测试覆盖、文档完整性。根据验证结果决定是否通过, 通过后立即调用 `ddd-tool confirm` 推进到下一阶段。",
+            "使用 Bash工具 执行: {} {name}。验证当前阶段开发成果是否符合规格要求。检查代码质量、测试覆盖、文档完整性。根据验证结果决定是否通过, 通过后立即调用 `ddd-tool confirm` 推进到下一阶段。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "verify"
+name: "{name}"
 description: "验证当前阶段开发成果是否符合规格要求"
 ---
-调用 !`{} verify 2>&1`
+调用 !`{} {name} 2>&1`
 验证当前阶段代码质量和规格符合度
 "#,
             bin

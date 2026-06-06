@@ -67,7 +67,7 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegist
     for cmd in &commands {
         let name = cmd.name();
         let prompt = cmd
-            .command_prompt(ddd_binary.to_string_lossy().as_ref())
+            .command_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();
 
         let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
@@ -131,7 +131,7 @@ agent: Sisyphus
         // Skill file
         let skill_file = skills_dir.join(format!("ddd-{}.md", name));
         let skill_content = cmd
-            .skill_prompt(ddd_binary.to_string_lossy().as_ref())
+            .skill_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();
         fs::write(&skill_file, skill_content)?;
     }

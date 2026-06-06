@@ -91,20 +91,20 @@ impl DddCommand for InitCommand {
         Some(INIT_PROMPT)
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} init $ARGUMENTS。初始化项目规格文档。分析需求并按照规格设计原则创建规格文件。所有文档存储到 @project_docs/specs/ 目录下。执行完毕后读取 stdout, 确认规格文件已创建, 然后立即调用 `ddd-tool prepare` 继续下一步。",
+            "使用 Bash工具 执行: {} {name} $ARGUMENTS。初始化项目规格文档。分析需求并按照规格设计原则创建规格文件。所有文档存储到 @project_docs/specs/ 目录下。执行完毕后读取 stdout, 确认规格文件已创建, 然后立即调用 `ddd-tool prepare` 继续下一步。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "init"
+name: "{name}"
 description: "分析需求文档, 按照规格设计原则创建项目规格文件"
 ---
-调用 !`{} init $ARGUMENTS 2>&1`
+调用 !`{} {name} $ARGUMENTS 2>&1`
 分析需求并创建 @project_docs/specs/ 下的规格文档
 "#,
             bin

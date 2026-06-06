@@ -19,20 +19,20 @@ impl DddCommand for AcceptCommand {
         None
     }
 
-    fn command_prompt(&self, bin: &str) -> Option<String> {
+    fn command_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "使用 Bash工具 执行: {} accept。扫描 @project_docs/phases/ 目录, 接受阶段计划并初始化状态。完成后立即调用 `ddd-tool exec` 开始第一个阶段的开发。",
+            "使用 Bash工具 执行: {} {name}。扫描 @project_docs/phases/ 目录, 接受阶段计划并初始化状态。完成后立即调用 `ddd-tool exec` 开始第一个阶段的开发。",
             bin
         ))
     }
 
-    fn skill_prompt(&self, bin: &str) -> Option<String> {
+    fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "accept"
+name: "{name}"
 description: "接受阶段计划并初始化开发状态"
 ---
-调用 !`{} accept 2>&1`
+调用 !`{} {name} 2>&1`
 扫描 phases/ 目录并初始化开发阶段
 "#,
             bin
