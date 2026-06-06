@@ -1,7 +1,61 @@
 use crate::commands::DddContext;
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
 use std::ffi::OsStr;
 use std::fs;
+
+pub struct AcceptCommand;
+
+impl DddCommand for AcceptCommand {
+    fn name(&self) -> &'static str {
+        "accept"
+    }
+
+    fn description(&self) -> &'static str {
+        "Accept development plan, init phases"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        None
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let phases_dir = ctx.project_root.join("project_docs").join("phases");
+        let mut phase_files: Vec<_> = fs::read_dir(&phases_dir)?
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                let name = e.file_name();
+                name.to_string_lossy().ends_with(".md") && !name.to_string_lossy().starts_with("index")
+            })
+            .collect();
+
+        phase_files.sort_by_cached_key(|e| extract_sort_key(&e.file_name()));
+
+        let files: Vec<_> = phase_files
+            .iter()
+            .enumerate()
+            .map(|(idx, entry)| {
+                let name = format!("Phase{}", idx + 1);
+                let file = format!(
+                    "@project_docs/phases/{}",
+                    entry.file_name().to_string_lossy()
+                );
+                (name, file)
+            })
+            .collect();
+
+        if files.is_empty() {
+            return Ok(CommandResult::ok("显示:开发计划未生成, 请重新执行 /ddd-prepare, **important** 状态机由ddd-tool维护, 不允许修改 roadmap.json"));
+        }
+
+        let mut state = ctx.load_state()?;
+        state.init_phases_from_files(files);
+
+        ctx.save_state(&state)?;
+
+        Ok(CommandResult::ok(format!("状态机已生成，共 {} 个阶段, 提示: 请执行 /ddd-exec 开始启动实际开发, 然后停止!", state.phases.len())))
+    }
+}
 
 /// 从文件名中提取第一个连续数字序列，用于自然排序
 fn extract_sort_key(filename: &OsStr) -> (Option<u32>, String) {

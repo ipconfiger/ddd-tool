@@ -1,4 +1,5 @@
 use crate::commands::{DddContext, InitCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
 use std::fs;
@@ -73,4 +74,48 @@ fn do_run(cmd: InitCmd) -> Result<()> {
     ctx.save_state(&state)?;
 
     Ok(())
+}
+
+pub struct InitCommand;
+
+impl DddCommand for InitCommand {
+    fn name(&self) -> &'static str {
+        "init"
+    }
+
+    fn description(&self) -> &'static str {
+        "Initialize project with context"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(INIT_PROMPT)
+    }
+
+    fn execute(&self, ctx: &DddContext, args: &str) -> Result<CommandResult> {
+        let state = ctx.load_state()?;
+        if state.workflow != "init" {
+            return Ok(CommandResult::err("当前已进入开发阶段, 请先完成当前开发任务".to_string()));
+        }
+
+        let context_value = if args.is_empty() {
+            "未提供需求文档".to_string()
+        } else {
+            let resolved = ctx.resolve_path(args);
+            if resolved.exists() {
+                fs::read_to_string(&resolved).unwrap_or_else(|_| args.to_string())
+            } else {
+                args.to_string()
+            }
+        };
+
+        let prompt = render(
+            INIT_PROMPT,
+            &crate::prompts::PromptParams::new().with_context(context_value),
+        ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
+
+        Ok(CommandResult::ok_with_prompt(
+            "初始化 prompt 已生成".to_string(),
+            prompt,
+        ))
+    }
 }

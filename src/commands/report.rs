@@ -1,6 +1,36 @@
 use crate::commands::{DddContext, ReportCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
 use std::fs;
+
+pub struct ReportCommand;
+
+impl DddCommand for ReportCommand {
+    fn name(&self) -> &'static str {
+        "report"
+    }
+
+    fn description(&self) -> &'static str {
+        "Generate project report"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        None
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let state = ctx.load_state()?;
+
+        let report_path = ctx.project_root.join("project_docs").join("report.md");
+
+        let report = generate_report(&state);
+
+        fs::write(&report_path, &report)?;
+
+        let msg = format!("📊 报告已生成: @project_docs/report.md\n\n{}", report);
+        Ok(CommandResult::ok(msg))
+    }
+}
 
 pub fn run(_cmd: ReportCmd) {
     if let Err(e) = do_run() {

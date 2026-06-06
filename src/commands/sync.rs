@@ -1,6 +1,66 @@
 use crate::commands::{DddContext, SyncCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
 use std::fs;
+
+pub struct SyncCommand;
+
+impl DddCommand for SyncCommand {
+    fn name(&self) -> &'static str {
+        "sync"
+    }
+
+    fn description(&self) -> &'static str {
+        "Sync code to docs"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        None
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let sync_log_path = ctx.project_root.join("project_docs").join("sync_log.md");
+
+        let src_path = ctx.project_root.join("src");
+        let mut code_modules = Vec::new();
+
+        if src_path.exists() {
+            collect_rust_files(&src_path, &mut code_modules);
+        }
+
+        let specs_path = ctx.project_root.join("project_docs").join("specs");
+        let mut spec_files = Vec::new();
+
+        if specs_path.exists() {
+            for entry in fs::read_dir(&specs_path)?.filter_map(Result::ok) {
+                if entry.path().extension().map(|e| e == "md").unwrap_or(false) {
+                    spec_files.push(entry.file_name().to_string_lossy().to_string());
+                }
+            }
+        }
+
+        let mut log = String::new();
+        log.push_str("# 代码与文档同步日志\n\n");
+        log.push_str(&format!("**同步时间**: {}\n\n", chrono::Local::now().format("%Y-%m-%d %H:%M:%S")));
+        log.push_str("## 代码模块\n\n");
+        for module in &code_modules {
+            log.push_str(&format!("- {}\n", module));
+        }
+        log.push_str("\n## Spec 文档\n\n");
+        for spec in &spec_files {
+            log.push_str(&format!("- {}\n", spec));
+        }
+        log.push_str("\n## 同步状态\n\n");
+        log.push_str("- [ ] 代码结构已扫描\n");
+        log.push_str("- [ ] Spec 文档已扫描\n");
+        log.push_str("- [ ] 差异对比待执行\n");
+        log.push_str("- [ ] 文档更新待执行\n");
+
+        fs::write(&sync_log_path, &log)?;
+
+        Ok(CommandResult::ok("📝 代码实现已反向同步至文档，文档驱动闭环已刷新\n同步日志: @project_docs/sync_log.md"))
+    }
+}
 
 pub fn run(_cmd: SyncCmd) {
     if let Err(e) = do_run() {

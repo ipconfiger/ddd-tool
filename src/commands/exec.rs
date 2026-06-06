@@ -1,4 +1,5 @@
 use crate::commands::{DddContext, ExecCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
 
@@ -50,4 +51,47 @@ fn do_run() -> Result<()> {
     ctx.save_state(&new_state)?;
 
     Ok(())
+}
+
+pub struct ExecCommand;
+
+impl DddCommand for ExecCommand {
+    fn name(&self) -> &'static str {
+        "exec"
+    }
+
+    fn description(&self) -> &'static str {
+        "Execute development phase"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(EXEC_PROMPT)
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let mut state = ctx.load_state()?;
+        if !state.doc_ready {
+            return Ok(CommandResult::err("请先完成文档准备阶段".to_string()));
+        }
+
+        if let Some(current_phase) = state.fetch_current_phase() {
+            let prompt = render(
+                EXEC_PROMPT,
+                &crate::prompts::PromptParams::new()
+                    .with_file(current_phase.file.clone())
+                    .with_name(current_phase.name.clone()),
+            ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
+
+            Ok(CommandResult::ok_with_prompt(
+                format!("开始阶段: {}", current_phase.name),
+                prompt,
+            ))
+        } else if state.is_all_phases_complete() {
+            Ok(CommandResult::ok(
+                "全部阶段已经开发完成, 根据 @project_docs/specs/ 目录下的所有的规格文件 和 @project_docs/phases/ 的开发计划作为资料,结合当前实现的代码,进行交叉事实审核,高精度代码评审. 结束后询问是否执行 /ddd-achive 归档此轮开发".to_string()
+            ))
+        } else {
+            Ok(CommandResult::err("未找到当前阶段".to_string()))
+        }
+    }
 }

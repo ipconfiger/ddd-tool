@@ -1,4 +1,5 @@
 use crate::commands::{DddContext, VerifyCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
 
@@ -57,4 +58,53 @@ fn do_run() -> Result<()> {
     ctx.save_state(&state.clone())?;
 
     Ok(())
+}
+
+pub struct VerifyCommand;
+
+impl DddCommand for VerifyCommand {
+    fn name(&self) -> &'static str {
+        "verify"
+    }
+
+    fn description(&self) -> &'static str {
+        "Verify phase成果"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(VERIFY_PROMPT)
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let mut state = ctx.load_state()?;
+
+        let current_name = state.clone().current_phase.unwrap_or("".to_string());
+
+        let phase = state.phases.iter_mut().find(|p| p.name == current_name);
+        let phase = match phase {
+            Some(p) => p,
+            None => {
+                return Ok(CommandResult::err(format!(
+                    "请先完成开发阶段: {}, 停止执行等待用户介入",
+                    current_name
+                )))
+            }
+        };
+
+        phase.status = "verifying".to_string();
+
+        let prompt = render(
+            VERIFY_PROMPT,
+            &crate::prompts::PromptParams::new()
+                .with_file(phase.file.clone())
+                .with_name(current_name.clone()),
+        ).map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
+
+        ctx.save_state(&state)?;
+
+        Ok(CommandResult::ok_with_prompt(
+            format!("验证阶段: {}", current_name),
+            prompt,
+        ))
+    }
 }

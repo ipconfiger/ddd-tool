@@ -1,4 +1,5 @@
 use crate::commands::DddContext;
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use anyhow::Result;
 
 const AUDIT_PROMPT: &str = r#"根据 @project_docs/specs/ 目录下的所有的规格文件, 和 @project_docs/phases/ 的开发计划作为资料,
@@ -35,6 +36,37 @@ fn do_run() -> Result<()> {
     println!("{}", AUDIT_PROMPT);
 
     Ok(())
+}
+
+pub struct AuditCommand;
+
+impl DddCommand for AuditCommand {
+    fn name(&self) -> &'static str {
+        "audit"
+    }
+
+    fn description(&self) -> &'static str {
+        "Audit specs and plans"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(AUDIT_PROMPT)
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let specs_dir = ctx.project_root.join("project_docs").join("specs");
+        if !specs_dir.exists() {
+            return Ok(CommandResult::err(format!(
+                "规格文档目录不存在: {}",
+                specs_dir.display()
+            )));
+        }
+
+        Ok(CommandResult::ok_with_prompt(
+            "审计 prompt 已生成".to_string(),
+            AUDIT_PROMPT.to_string(),
+        ))
+    }
 }
 
 #[allow(dead_code)]

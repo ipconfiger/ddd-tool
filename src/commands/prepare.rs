@@ -1,4 +1,5 @@
 use crate::commands::{DddContext, PrepareCmd};
+use crate::commands::trait_def::{DddCommand, CommandResult};
 use crate::prompts::render;
 use anyhow::Result;
 use std::fs;
@@ -62,4 +63,35 @@ fn do_run() -> Result<()> {
     ctx.save_state(&state)?;
 
     Ok(())
+}
+
+pub struct PrepareCommand;
+
+impl DddCommand for PrepareCommand {
+    fn name(&self) -> &'static str {
+        "prepare"
+    }
+
+    fn description(&self) -> &'static str {
+        "Prepare phases from specs"
+    }
+
+    fn prompt_template(&self) -> Option<&'static str> {
+        Some(PREPARE_PROMPT)
+    }
+
+    fn execute(&self, ctx: &DddContext, _args: &str) -> Result<CommandResult> {
+        let state = ctx.load_state()?;
+        if state.workflow != "init" {
+            return Ok(CommandResult::err("当前已进入开发阶段, 请先完成当前开发任务".to_string()));
+        }
+
+        let prompt = render(PREPARE_PROMPT, &crate::prompts::PromptParams::new())
+            .map_err(|e| anyhow::anyhow!("渲染错误: {}", e))?;
+
+        Ok(CommandResult::ok_with_prompt(
+            "开发计划 prompt 已生成".to_string(),
+            prompt,
+        ))
+    }
 }
