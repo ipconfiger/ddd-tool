@@ -1,8 +1,6 @@
 # DDD - 文档驱动开发框架
 ## 扯闲篇儿
-** FXXK ** 主线跑通, 但是现在API要大改, 因为我发现API没有实现幂等, 一旦LLM发颠儿, 就会卡死了无法自己恢复.
-** SH-T ** 不小心提交了.claude 目录就把claude列为了贡献者, F--king Sh-t, 我就没有用claude的模型, 代码框架使用GLM写的, 然后就发现了一个很吊诡的问题, 你用prompt驱动模型去写prompt, 千万不要这么做, 他会自己就把输出就帮你执行了
-
+最近换了新的模式，用Skill来驱动，感觉Skill才是LLM的一等公民
 
 ## 开篇: AI Coding 的工程化难题
 
@@ -12,7 +10,7 @@
 
 所以如何让Coding Agent能够几行需求就一次性生成整个程序, 落实到工程上, 就是如何合理的利用上下文窗口, 让Agent能够拿到尽量精简干净的上下文, 在200K窗口内, 严格按照规格生成制成品, 如果要做的程序很大, 那么就需要切分成多个小的开发阶段, 一个阶段一个阶段的实现, 每一个阶段都能在一个上下文窗口中完成, 由现在大模型的能力,完全能够保证质量, 最后每一个阶段完成后, 有一个总体蓝图能够完成组装, 最后完成整个程序的开发.
 
-[![使用演示](https://i9.ytimg.com/vi_webp/4PFDykhqXCI/mq1.webp?sqp=CPCOgNAG-oaymwEmCMACELQB8quKqQMa8AEB-AH6CIAC0AWKAgwIABABGF0gXShdMA8=&rs=AOn4CLDg7VCBHh0uaaAjcrSNclIVHeyCrg)](https://youtu.be/4PFDykhqXCI)
+[![使用演示](https://i.imgur.com/F6OPZXH.png)](https://youtu.be/4PFDykhqXCI)
 
 ## 设计理念
 
