@@ -60,6 +60,8 @@ struct Arg {
 fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegistry) -> Result<()> {
     let claude_dir = project_root.join(".claude");
     let commands_dir = claude_dir.join("commands");
+    let skills_dir = project_root.join(".opencode/skills");
+    fs::create_dir_all(&skills_dir)?;
     fs::create_dir_all(&commands_dir)?;
     prepare_init_file(project_root, "CLAUDE")?;
 
@@ -70,7 +72,7 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegist
             .command_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();
 
-        let cmd_file = commands_dir.join(format!("{}.md", name));
+        let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
         let content = to_string(&PromptTask {
             name: name.to_string(),
             task_type: "ai".to_string(),
@@ -85,6 +87,14 @@ fn setup_claude(ddd_binary: &Path, project_root: &Path, registry: &CommandRegist
             auto_confirm: true,
         })?;
         fs::write(&cmd_file, content)?;
+
+        // Skill file
+        let skill_file = skills_dir.join(format!("ddd-{}.md", name));
+        let skill_content = cmd
+            .skill_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
+            .unwrap_or_default();
+        fs::write(&skill_file, skill_content)?;
+
     }
 
     // Generate skill files
@@ -128,7 +138,7 @@ fn setup_opencode(
         let desc = cmd.description();
 
         // Command file
-        let cmd_file = commands_dir.join(format!("{}.md", name));
+        let cmd_file = commands_dir.join(format!("ddd-{}.md", name));
         let cmd_content = format!(
             r#"---
 description: {}
@@ -144,7 +154,7 @@ agent: Sisyphus
         fs::write(&cmd_file, cmd_content)?;
 
         // Skill file
-        let skill_file = skills_dir.join(format!("{}.md", name));
+        let skill_file = skills_dir.join(format!("ddd-{}.md", name));
         let skill_content = cmd
             .skill_prompt(ddd_binary.to_string_lossy().as_ref(), cmd.name())
             .unwrap_or_default();

@@ -27,7 +27,7 @@ impl DddCommand for ConfirmCommand {
     fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "确认阶段完成并推进到下一阶段"
 ---
 调用 !`{} {name} 2>&1`

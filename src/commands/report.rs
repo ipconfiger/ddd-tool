@@ -6,7 +6,7 @@ pub struct ReportCommand;
 
 impl DddCommand for ReportCommand {
     fn name(&self) -> &'static str {
-        "ddd-report"
+        "report"
     }
 
     fn description(&self) -> &'static str {
@@ -19,14 +19,14 @@ impl DddCommand for ReportCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 Skill {name}, 执行技能",
+            "加载 Skill ddd-{name}, 执行技能",
         ))
     }
 
     fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "生成项目开发进度报告"
 ---
 调用 !`{} {name} 2>&1` 获取返回报告内容

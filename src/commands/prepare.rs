@@ -35,7 +35,7 @@ pub struct PrepareCommand;
 
 impl DddCommand for PrepareCommand {
     fn name(&self) -> &'static str {
-        "ddd-prepare"
+        "prepare"
     }
 
     fn description(&self) -> &'static str {
@@ -48,14 +48,14 @@ impl DddCommand for PrepareCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 Skill {name}, 执行技能生成开发计划",
+            "加载 Skill ddd-{name}, 执行技能生成开发计划",
         ))
     }
 
     fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "根据规格文档拆分为多个独立开发阶段"
 ---
 执行Bash `mkdir -p ../../project_docs/phases/`;

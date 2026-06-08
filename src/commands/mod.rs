@@ -125,7 +125,7 @@ fn dispatch(cmd: Command) {
 }
 
 fn dispatch_command(registry: &CommandRegistry, name: &str, ctx: &DddContext, args: &str) {
-    let lookup_key = format!("ddd-{name}");
+    let lookup_key = format!("{name}");
     match registry.get(&lookup_key) {
         Some(cmd) => {
             if !cmd.is_cli_visible() {

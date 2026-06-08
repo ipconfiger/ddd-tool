@@ -16,7 +16,7 @@ pub struct ExecCommand;
 
 impl DddCommand for ExecCommand {
     fn name(&self) -> &'static str {
-        "ddd-exec"
+        "exec"
     }
 
     fn description(&self) -> &'static str {
@@ -29,14 +29,14 @@ impl DddCommand for ExecCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载Skill {name}, 执行技能",
+            "加载Skill ddd-{name}, 执行技能",
         ))
     }
 
     fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "执行当前阶段的开发任务"
 ---
 调用 Bash !`{} {name} 2>&1` 获取当前执行阶段名称, 如果返回阶段名称,就:

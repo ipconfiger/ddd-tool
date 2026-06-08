@@ -8,7 +8,7 @@ pub struct AcceptCommand;
 
 impl DddCommand for AcceptCommand {
     fn name(&self) -> &'static str {
-        "ddd-accept"
+        "accept"
     }
 
     fn description(&self) -> &'static str {
@@ -21,14 +21,14 @@ impl DddCommand for AcceptCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载Skill {name}, 执行技能生成开发任务批次, 完成后提示用户可以执行 /ddd-exec 开始进行开发"
+            "加载Skill ddd-{name}, 执行技能生成开发任务批次, 完成后提示用户可以执行 /ddd-exec 开始进行开发"
         ))
     }
 
     fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "接受阶段计划并初始化开发状态"
 ---
 扫描 phases/ 目录并初始化开发阶段

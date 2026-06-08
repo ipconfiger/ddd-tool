@@ -6,3 +6,4 @@ target/
 .omc/state/
 .omc/sessions/
 .omc/project-memory.json
+.sisyphus/

@@ -24,7 +24,7 @@ pub struct VerifyCommand;
 
 impl DddCommand for VerifyCommand {
     fn name(&self) -> &'static str {
-        "ddd-verify"
+        "verify"
     }
 
     fn description(&self) -> &'static str {
@@ -37,14 +37,14 @@ impl DddCommand for VerifyCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载Skill {name}, 执行技能"
+            "加载Skill ddd-{name}, 执行技能"
         ))
     }
 
     fn skill_prompt(&self, bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "验证当前阶段开发成果是否符合规格要求"
 ---
 调用 Base !`{} {name} 2>&1` 从返回里获得当前阶段名称,

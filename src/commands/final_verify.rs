@@ -28,7 +28,7 @@ pub struct FinalVerifyCommand;
 
 impl DddCommand for FinalVerifyCommand {
     fn name(&self) -> &'static str {
-        "ddd-final"
+        "final"
     }
 
     fn description(&self) -> &'static str {
@@ -41,14 +41,14 @@ impl DddCommand for FinalVerifyCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 Skill {name}, 执行技能",
+            "加载 Skill ddd-{name}, 执行技能",
         ))
     }
 
     fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "对所有阶段进行最终交叉验证"
 ---
 {},

@@ -18,7 +18,7 @@ pub struct AuditCommand;
 
 impl DddCommand for AuditCommand {
     fn name(&self) -> &'static str {
-        "ddd-audit"
+        "audit"
     }
 
     fn description(&self) -> &'static str {
@@ -31,14 +31,14 @@ impl DddCommand for AuditCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 Skill {name}, 执行技能开始评审, 执行完成后, 调用 Skill ddd-accept",
+            "加载 Skill ddd-{name}, 执行技能开始评审, 执行完成后, 调用 Skill ddd-accept",
         ))
     }
 
     fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "审核规格文件的质量和一致性"
 ---
 {}

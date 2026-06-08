@@ -36,7 +36,7 @@ pub struct InitCommand;
 
 impl DddCommand for InitCommand {
     fn name(&self) -> &'static str {
-        "ddd-init"
+        "init"
     }
 
     fn description(&self) -> &'static str {
@@ -49,14 +49,14 @@ impl DddCommand for InitCommand {
 
     fn command_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
-            "加载 {name} skill, 根据需求: $ARGUMENTS。初始化项目规格文档."
+            "加载 ddd-{name} skill, 根据需求: $ARGUMENTS。初始化项目规格文档."
         ))
     }
 
     fn skill_prompt(&self, _bin: &str, name: &str) -> Option<String> {
         Some(format!(
             r#"---
-name: "{name}"
+name: "ddd-{name}"
 description: "分析需求文档, 按照规格设计原则创建项目规格文件"
 ---
 执行Bash `mkdir -p ../../project_docs/specs/`;
