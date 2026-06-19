@@ -1,6 +1,6 @@
 # DDD - 文档驱动开发框架
-## 扯闲篇儿
-最近换了新的模式，用Skill来驱动，感觉Skill才是LLM的一等公民
+**注意** 本项目停止更新，所有功能都在新项目中： [[https://github.com/ipconfiger/ForceLoop]](https://github.com/ipconfiger/ForceLoop)
+
 
 ## 开篇: AI Coding 的工程化难题
 
